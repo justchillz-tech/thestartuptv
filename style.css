@@ -1,0 +1,70 @@
+/* style.css */
+
+/* Fonts */
+body,h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Button Glow & Gradient Hover */
+a.bg-gradient-to-r {
+  background-size: 200% 200%;
+  transition: all 0.5s ease;
+}
+a.bg-gradient-to-r:hover {
+  background-position: right center;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(243,150,31,0.6), 0 0 25px rgba(207,29,127,0.4);
+}
+
+/* Hero text shadow for cinematic effect */
+section#hero h1 {
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+}
+
+/* Navbar */
+nav ul li a {
+  position: relative;
+}
+nav ul li a::after {
+  content: '';
+  display: block;
+  width: 0%;
+  height: 2px;
+  background: #F3961F;
+  transition: width 0.3s;
+  margin-top: 4px;
+}
+nav ul li a:hover::after {
+  width: 100%;
+}
+
+/* Card hover */
+section#shows .bg-gray-900:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease-in-out;
+  box-shadow: 0 8px 20px rgba(243,150,31,0.4), 0 0 20px rgba(203,29,127,0.3);
+}
+
+/* Fade & Slide Animations (optional enhancement) */
+.opacity-0 { opacity: 0; }
+.opacity-100 { opacity: 1; }
+.translate-y-12 { transform: translateY(3rem); }
+.translate-y-0 { transform: translateY(0); }
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  nav ul { display: none; }
+  section#shows .grid { grid-template-columns: repeat(1, 1fr); }
+  section#why .grid { grid-template-columns: repeat(2, 1fr); }
+  h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.75rem; }
+}
+
+/* Footer links hover */
+footer a:hover {
+  color: #F3961F;
+  text-decoration: underline;
+}
+
+/* Misc utility tweaks */
+section { scroll-margin-top: 80px; } /* offset for fixed navbar */
