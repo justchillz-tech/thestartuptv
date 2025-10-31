@@ -1,37 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coming Soon | The Startup TV</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Startup TV</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css">
+
   <style>
+    :root {
+      --accent1: #F3961F;
+      --accent2: #EF6A37;
+      --accent3: #CB1D7F;
+      --accent4: #963694;
+    }
+
     body {
-      background-color: #000;
-      color: #fff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      text-align: center;
-      flex-direction: column;
-    }
-    h1 {
-      font-size: 3rem;
-      letter-spacing: 2px;
-    }
-    p {
-      color: #ccc;
-      margin-top: 10px;
-      font-size: 1.1rem;
+      font-family: 'Poppins', sans-serif;
     }
   </style>
 </head>
-<body>
-  <div>
-    <h1>Coming Soon</h1>
-    <p>The Startup TV is under construction. Stay tuned!</p>
-  </div>
+
+<body class="bg-gray-900 text-white">
+
+  <!-- Navbar -->
+  <header class="bg-black shadow-md z-50">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <img src="/assets/logo.png" alt="Startup TV Logo" class="w-40 h-15 object-contain">
+
+      <ul class="hidden md:flex space-x-8 font-medium">
+        <li><a href="index.html" class="hover:text-[var(--accent1)] transition">Home</a></li>
+        <li><a href="about.html" class="hover:text-[var(--accent1)] transition">About</a></li>
+        <li><a href="shows.html" class="hover:text-[var(--accent1)] transition">Shows</a></li>
+        <li><a href="faq.html" class="hover:text-[var(--accent1)] transition">FAQ</a></li>
+        <li><a href="contact.html" class="hover:text-[var(--accent1)] transition">Contact</a></li>
+      </ul>
+
+      <a href="#"
+        class="hidden md:inline-block px-5 py-2 bg-gradient-to-r from-[var(--accent1)] via-[var(--accent2)] to-[var(--accent3)] rounded-lg font-semibold text-gray-900 hover:scale-105 transition-transform">Watch
+        Now</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative h-screen flex items-center justify-center text-center bg-cover bg-center"
+    style="background-image: url('/assets/hero.jpg');">
+    <div class="absolute inset-0 bg-black/60"></div>
+    <div class="relative max-w-4xl px-6">
+      <h1 class="text-4xl md:text-6xl font-bold mb-6">World’s 1st Business Entertainment Platform</h1>
+      <h2 class="text-2xl md:text-3xl font-bold mb-8">Exclusively made for startups, entrepreneurs and dreamers</h2>
+      <a href="#"
+        class="inline-block px-8 py-4 bg-gradient-to-r from-[var(--accent1)] via-[var(--accent2)] to-[var(--accent3)] rounded-xl font-bold text-gray-900 text-lg animate-bounce hover:scale-105 transition-transform">
+        Watch Now
+      </a>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section id="about" class="max-w-7xl mx-auto px-6 py-24 md:py-32">
+    <h2 class="text-3xl md:text-4xl font-bold mb-6 text-[var(--accent1)]">About Startup TV</h2>
+    <p class="text-gray-300 text-lg md:text-xl leading-relaxed">
+      Startup TV is a platform purely crafted for the intrepid spirit of startups, entrepreneurship, and thrilling
+      business innovation. Startup TV is on a mission to ignite the spark of entrepreneurship within everyone.
+    </p>
+  </section>
+
+  <!-- Mission & Vision -->
+  <section id="mission-vision" class="bg-gray-800 py-24">
+    <div class="max-w-7xl mx-auto px-6 md:flex md:space-x-12">
+      <div class="md:w-1/2 mb-12 md:mb-0">
+        <h3 class="text-2xl font-semibold text-[var(--accent2)] mb-4">Mission</h3>
+        <p class="text-gray-300 leading-relaxed">
+          Startup TV aims to create the world’s first dedicated OTT ecosystem that empowers, educates, and entertains
+          entrepreneurs.
+        </p>
+      </div>
+      <div class="md:w-1/2">
+        <h3 class="text-2xl font-semibold text-[var(--accent3)] mb-4">Vision</h3>
+        <p class="text-gray-300 leading-relaxed">
+          To inspire, guide, and support entrepreneurial aspirations worldwide.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shows Section -->
+  <section id="shows" class="max-w-7xl mx-auto px-6 py-24">
+    <h2 class="text-3xl md:text-4xl font-bold mb-12 text-[#F3961F] text-center">Shows</h2>
+    <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-8"> 
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
+        <img src="/assets/show1.jpg" alt="Apex Club" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h3 class="text-xl font-semibold mb-2">Apex Club</h3>
+          <p class="text-gray-300 text-sm mb-4">Big minds. Bigger conversations. Where industry leaders and investors
+            debate trends, ideas, and what’s next in business.</p> <a href="#"
+            class="text-[#F3961F] font-bold hover:underline">🎥 Watch Now</a>
+        </div>
+      </div> 
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
+        <img src="/assets/show2.jpg" alt="Chef O’Clock" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h3 class="text-xl font-semibold mb-2">🍴 Chef O’Clock</h3>
+          <p class="text-gray-300 text-sm mb-4">Food meets business. Discover how chefs and foodpreneurs turn passion
+            into profit.</p> <a href="#" class="text-[#F3961F] font-bold hover:underline">🎥 Watch Now</a>
+        </div>
+      </div>
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
+        <img src="/assets/show3.jpg" alt="Clash Point" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h3 class="text-xl font-semibold mb-2"> Clash Point</h3>
+          <p class="text-gray-300 text-sm mb-4">Bold debates. Big ideas. Experts and entrepreneurs clash over the trends
+            shaping the business future.</p> <a href="#" class="text-[#F3961F] font-bold hover:underline">🎥 Watch
+            Now</a>
+        </div>
+      </div>
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
+        <img src="/assets/show4.jpg" alt="Deal Room" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h3 class="text-xl font-semibold mb-2"> Deal Room</h3>
+          <p class="text-gray-300 text-sm mb-4">The funding zone! Where startups pitch, investors challenge, and real
+            deals unfold.</p> <a href="#" class="text-[#F3961F] font-bold hover:underline">🎥 Watch Now</a>
+        </div>
+      </div>
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
+        <img src="/assets/show5.jpg" alt="POV" class="w-full h-48 object-cover">
+        <div class="p-4">
+          <h3 class="text-xl font-semibold mb-2"> POV</h3>
+          <p class="text-gray-300 text-sm mb-4">All about movies — box-office trends, OTT battles, and business
+            insights.</p> <a href="#" class="text-[#F3961F] font-bold hover:underline">🎥 Watch Now</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 py-12 mt-12 text-center text-gray-400">
+    <p>&copy; 2025 Startup TV. All rights reserved.</p>
+  </footer>
+
 </body>
+
 </html>

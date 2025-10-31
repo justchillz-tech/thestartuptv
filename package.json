@@ -144,7 +144,7 @@
     "unpipe": "^1.0.0",
     "uri-js": "^4.4.1",
     "v8-compile-cache-lib": "^3.0.1",
-    "vercel": "^48.4.0",
+    "vercel": "^48.7.1",
     "web-vitals": "^0.2.4",
     "webidl-conversions": "^3.0.1",
     "whatwg-url": "^5.0.0",
