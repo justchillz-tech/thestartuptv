@@ -1,5 +1,46 @@
 /* style.css */
 
+:root {
+  --accent1: #F3961F;
+  --accent2: #EF6A37;
+  --accent3: #CB1D7F;
+  --accent4: #963694;
+}
+
+.brand-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--accent1),
+    var(--accent2),
+    var(--accent3),
+    var(--accent4)
+  );
+}
+
+.hero-gradient {
+  background: linear-gradient(
+    -45deg,
+    var(--accent1),
+    var(--accent2),
+    var(--accent3),
+    var(--accent4)
+  );
+  background-size: 400% 400%;
+  animation: gradientMove 12s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 /* Fonts */
 body,h1, h2, h3, h4, h5, h6 {
   font-family: 'Poppins', sans-serif;
@@ -16,12 +57,33 @@ a.bg-gradient-to-r:hover {
   box-shadow: 0 0 15px rgba(243,150,31,0.6), 0 0 25px rgba(207,29,127,0.4);
 }
 
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent1), var(--accent3));
+  border: none;
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 30px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
 /* Hero text shadow for cinematic effect */
 section#hero h1 {
   text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
 }
 
 /* Navbar */
+.navbar {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 nav ul li a {
   position: relative;
 }
@@ -43,6 +105,46 @@ section#shows .bg-gray-900:hover {
   transform: scale(1.05);
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 8px 20px rgba(243,150,31,0.4), 0 0 20px rgba(203,29,127,0.3);
+}
+
+.fancy-card {
+  transition: all 0.35s ease;
+  border-radius: 16px;
+}
+
+.fancy-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent2), var(--accent4));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.glow {
+  box-shadow: 0 0 30px rgba(203, 29, 127, 0.4);
+}
+
+.bg-shape {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, var(--accent3), transparent);
+  filter: blur(80px);
+  animation: float 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-40px);
+  }
 }
 
 /* Fade & Slide Animations (optional enhancement) */

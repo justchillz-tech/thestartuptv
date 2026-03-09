@@ -15,15 +15,9 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="style.css">
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
 
   <style>
-    :root {
-      --accent1: #F3961F;
-      --accent2: #EF6A37;
-      --accent3: #CB1D7F;
-      --accent4: #963694;
-    }
-
     body {
       font-family: 'Poppins', sans-serif;
     }
@@ -173,7 +167,7 @@
 <body class="bg-gray-900 text-white">
 
   <!-- Navbar -->
-  <header class="navbar shadow-md">
+  <header class="bg-black shadow-md z-50">
     <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
       <img src="/assets/logo.png" alt="Startup TV Logo" class="w-40 h-15 object-contain">
 
@@ -186,20 +180,22 @@
         <li><a href="blog.html" class="hover:text-[var(--accent1)] transition">Blog</a></li>
       </ul>
 
-      <a href="#" class="hidden md:inline-block btn-primary glow">Watch Now</a>
+      <a href="#"
+        class="hidden md:inline-block px-5 py-2 bg-gradient-to-r from-[var(--accent1)] via-[var(--accent2)] to-[var(--accent3)] rounded-lg font-semibold text-gray-900 hover:scale-105 transition-transform">Watch
+        Now</a>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <section class="hero hero-gradient relative h-screen flex items-center justify-center text-center bg-cover bg-center overflow-hidden"
-    style="background-image: url('/assets/hero.JPG');">
-    <div class="bg-shape top-10 -left-20 opacity-60"></div>
-    <div class="bg-shape bottom-10 -right-20 opacity-60" style="animation-delay: 1.5s;"></div>
+  <section class="relative h-screen flex items-center justify-center text-center bg-cover bg-center" style="background-image: url('/assets/hero.JPG');">
     <div class="absolute inset-0 bg-black/60"></div>
-    <div class="relative max-w-4xl px-6" data-aos="fade-up">
-      <h1 class="text-4xl md:text-6xl font-bold mb-6 gradient-text">World's 1st Business Entertainment Platform</h1>
+    <div class="relative max-w-4xl px-6">
+      <h1 class="text-4xl md:text-6xl font-bold mb-6">World’s 1st Business Entertainment Platform</h1>
       <h2 class="text-2xl md:text-3xl font-bold mb-8">Exclusively made for startups, entrepreneurs and dreamers</h2>
-      <a href="#" class="btn-primary glow text-lg">Watch Now</a>
+      <a href="#"
+        class="inline-block px-8 py-4 bg-gradient-to-r from-[var(--accent1)] via-[var(--accent2)] to-[var(--accent3)] rounded-xl font-bold text-gray-900 text-lg animate-bounce hover:scale-105 transition-transform">
+        Watch Now
+      </a>
     </div>
   </section>
 
@@ -213,7 +209,7 @@
   </section>
 
   <!-- Mission & Vision -->
-  <section id="mission-vision" class="bg-gray-800 py-24" data-aos="slide-left">
+  <section id="mission-vision" class="bg-gray-800 py-24">
     <div class="max-w-7xl mx-auto px-6 md:flex md:space-x-12">
       <div class="md:w-1/2 mb-12 md:mb-0 fancy-card p-6 bg-gray-900/50">
         <h3 class="text-2xl font-semibold gradient-text mb-4">Mission</h3>
@@ -232,10 +228,11 @@
   </section>
 
   <!-- Shows Section -->
-  <section id="shows" class="max-w-7xl mx-auto px-6 py-24" data-aos="zoom-in">
-    <h2 class="text-3xl md:text-4xl font-bold mb-12 gradient-text text-center">Shows</h2>
+  <section id="shows" class="max-w-7xl mx-auto px-6 py-24">
+    <h2 class="text-3xl md:text-4xl font-bold mb-12 text-[#F3961F] text-center">Shows</h2>
     <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-8">
-      <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg fancy-card">
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
         <img src="/assets/show1.jpg" alt="Apex Club" class="w-full h-48 object-cover">
         <div class="p-4">
           <h3 class="text-xl font-semibold mb-2">Apex Club</h3>
@@ -244,8 +241,9 @@
           <a href="#" class="text-[#F3961F] font-bold hover:underline">Watch Now</a>
         </div>
       </div>
-      <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg fancy-card">
-        <img src="/assets/show2.jpg" alt="Chef O'Clock" class="w-full h-48 object-cover">
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
+        <img src="/assets/show2.jpg" alt="Chef O’Clock" class="w-full h-48 object-cover">
         <div class="p-4">
           <h3 class="text-xl font-semibold mb-2">Chef O'Clock</h3>
           <p class="text-gray-300 text-sm mb-4">Food meets business. Discover how chefs and foodpreneurs turn passion
@@ -253,7 +251,8 @@
           <a href="#" class="text-[#F3961F] font-bold hover:underline">Watch Now</a>
         </div>
       </div>
-      <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg fancy-card">
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
         <img src="/assets/show3.jpg" alt="Clash Point" class="w-full h-48 object-cover">
         <div class="p-4">
           <h3 class="text-xl font-semibold mb-2">Clash Point</h3>
@@ -262,7 +261,8 @@
           <a href="#" class="text-[#F3961F] font-bold hover:underline">Watch Now</a>
         </div>
       </div>
-      <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg fancy-card">
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
         <img src="/assets/show4.jpg" alt="Deal Room" class="w-full h-48 object-cover">
         <div class="p-4">
           <h3 class="text-xl font-semibold mb-2">Deal Room</h3>
@@ -271,7 +271,8 @@
           <a href="#" class="text-[#F3961F] font-bold hover:underline">Watch Now</a>
         </div>
       </div>
-      <div class="bg-gray-900 rounded-xl overflow-hidden shadow-lg fancy-card">
+      <div
+        class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
         <img src="/assets/show5.jpg" alt="POV" class="w-full h-48 object-cover">
         <div class="p-4">
           <h3 class="text-xl font-semibold mb-2">POV</h3>
@@ -287,14 +288,6 @@
   <footer class="bg-gray-900 py-12 mt-12 text-center text-gray-400">
     <p>&copy; 2025 Startup TV. All rights reserved.</p>
   </footer>
-
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
-  <script>
-    AOS.init({
-      duration: 1000,
-      once: true
-    });
-  </script>
 
 </body>
 
