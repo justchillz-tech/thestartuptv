@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Blog Post - The Startup TV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="bg-gray-900 text-white font-poppins">
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 bg-gray-900/80 backdrop-blur-sm shadow-lg">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <img src="/assets/logo.png" alt="Startup TV Logo" class="h-10 w-10 object-contain">
+                <span class="text-xl font-bold text-white">The Startup TV</span>
+            </div>
+            <ul class="hidden md:flex space-x-8 text-white font-medium">
+                <li><a href="index.html" class="hover:text-[#F3961F] transition">Home</a></li>
+                <li><a href="about.html" class="hover:text-[#F3961F] transition">About</a></li>
+                <li><a href="shows.html" class="hover:text-[#F3961F] transition">Shows</a></li>
+                <li><a href="faq.html" class="hover:text-[#F3961F] transition">FAQ</a></li>
+                <li><a href="contact.html" class="hover:text-[#F3961F] transition">Contact</a></li>
+                <li><a href="blog.html" class="hover:text-[#F3961F] transition">Blog</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Admin Header -->
+    <section class="relative h-64 flex items-center justify-center text-center bg-cover bg-center"
+        style="background-image: url('/assets/about-hero.jpg');">
+        <div class="absolute inset-0 bg-black/70"></div>
+        <div class="relative text-white">
+            <p class="uppercase tracking-[0.35em] text-sm text-gray-300">Admin Console</p>
+            <h1 class="text-3xl md:text-5xl font-poppins font-bold drop-shadow-lg mt-2">Post a New Blog</h1>
+            <p class="text-gray-200 mt-3 max-w-2xl mx-auto">Draft, preview, and publish stories for the Startup TV
+                audience.</p>
+        </div>
+    </section>
+
+    <!-- Admin Form -->
+    <section class="max-w-5xl mx-auto px-6 py-16">
+        <div class="grid gap-8 lg:grid-cols-[2fr,1fr]">
+            <form class="bg-gray-800 p-8 rounded-2xl shadow-xl">
+                <h2 class="text-2xl font-semibold text-[#F3961F] mb-6">Blog Details</h2>
+                <div class="grid gap-6">
+                    <label class="block">
+                        <span class="text-sm text-gray-300">Title</span>
+                        <input type="text" placeholder="Enter the blog title"
+                            class="mt-2 w-full rounded-lg px-4 py-3 text-gray-900" required>
+                    </label>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <label class="block">
+                            <span class="text-sm text-gray-300">Category</span>
+                            <select class="mt-2 w-full rounded-lg px-4 py-3 text-gray-900">
+                                <option>Founder Diaries</option>
+                                <option>Investor Lens</option>
+                                <option>Showrunner Notes</option>
+                                <option>Community Picks</option>
+                            </select>
+                        </label>
+                        <label class="block">
+                            <span class="text-sm text-gray-300">Author</span>
+                            <input type="text" placeholder="Author name"
+                                class="mt-2 w-full rounded-lg px-4 py-3 text-gray-900" required>
+                        </label>
+                    </div>
+                    <label class="block">
+                        <span class="text-sm text-gray-300">Featured Image URL</span>
+                        <input type="url" placeholder="https://" class="mt-2 w-full rounded-lg px-4 py-3 text-gray-900">
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-gray-300">Excerpt</span>
+                        <textarea rows="4" placeholder="Write a short summary for the blog"
+                            class="mt-2 w-full rounded-lg px-4 py-3 text-gray-900" required></textarea>
+                    </label>
+                    <label class="block">
+                        <span class="text-sm text-gray-300">Content</span>
+                        <textarea rows="10" placeholder="Draft the full blog content here..."
+                            class="mt-2 w-full rounded-lg px-4 py-3 text-gray-900" required></textarea>
+                    </label>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                    <button type="submit"
+                        class="px-6 py-3 bg-gradient-to-r from-[#F3961F] via-[#EF6A37] to-[#CB1D7F] rounded-lg font-semibold text-gray-900 hover:scale-105 transition-transform">Publish
+                        Blog</button>
+                    <button type="button"
+                        class="px-6 py-3 bg-gray-700 rounded-lg text-white hover:bg-gray-600 transition">Save
+                        Draft</button>
+                </div>
+            </form>
+
+            <aside class="bg-gray-800 p-6 rounded-2xl shadow-xl h-fit">
+                <h3 class="text-xl font-semibold text-[#F3961F] mb-4">Publishing Checklist</h3>
+                <ul class="space-y-3 text-gray-300 text-sm">
+                    <li>✅ Confirm the story aligns with Startup TV’s tone.</li>
+                    <li>✅ Add a compelling featured image.</li>
+                    <li>✅ Include action-oriented takeaways.</li>
+                    <li>✅ Preview and proofread before publishing.</li>
+                </ul>
+                <div class="mt-6 p-4 bg-gray-900 rounded-xl">
+                    <p class="text-xs uppercase tracking-[0.2em] text-gray-400">Quick Links</p>
+                    <div class="mt-3 flex flex-col gap-2 text-sm">
+                        <a href="blog.html" class="text-[#F3961F] hover:underline">View Blog Page</a>
+                        <a href="index.html" class="text-[#F3961F] hover:underline">Back to Home</a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-12 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center text-gray-400">
+            <p>Quick Links: <a href="index.html" class="hover:text-[#F3961F]">Home</a> • <a href="about.html"
+                    class="hover:text-[#F3961F]">About</a> • <a href="shows.html" class="hover:text-[#F3961F]">Shows</a>
+                • <a href="faq.html" class="hover:text-[#F3961F]">FAQ</a> • <a href="contact.html"
+                    class="hover:text-[#F3961F]">Contact</a> • <a href="blog.html" class="hover:text-[#F3961F]">Blog</a>
+            </p>
+            <p class="mt-4">Contact: address • email • phone</p>
+            <p class="mt-4">Social: LinkedIn • Instagram • X • Facebook</p>
+            <p class="mt-6 text-sm text-gray-500">© 2025 The Startup TV. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+
+</html>
