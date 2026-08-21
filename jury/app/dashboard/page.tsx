@@ -9,13 +9,15 @@ export default async function DashboardPage() {
   if (!claimsData?.claims) redirect("/login");
 
   const userId = String(claimsData.claims.sub);
-  const { data: jury } = await supabase.from("juries").select("name, email").eq("id", userId).single();
+  const { data: jury } = await supabase.from("juries").select("name, email, role").eq("id", userId).single();
 
   const { data: assignments } = await supabase
     .from("assignments")
     .select("id, status, films(id, title, director, duration, language, drive_url)")
     .eq("jury_id", userId)
     .order("created_at", { ascending: true });
+
+  const isAdmin = jury?.role === "admin";
 
   return (
     <main className="portal-shell">
@@ -25,6 +27,7 @@ export default async function DashboardPage() {
           <div><strong>Startup TV</strong><span>JURY PORTAL</span></div>
         </Link>
         <div className="header-user">
+          {isAdmin && <div className="admin-links"><Link href="/admin/films">Films</Link><Link href="/admin/juries">Jury</Link><Link href="/admin/assignments">Assignments</Link></div>}
           <div><strong>{jury?.name ?? "Jury Member"}</strong><span>{jury?.email ?? ""}</span></div>
           <SignOutButton />
         </div>
@@ -32,14 +35,14 @@ export default async function DashboardPage() {
 
       <section className="dashboard-intro">
         <div>
-          <div className="eyebrow"><span /> YOUR ASSIGNMENTS</div>
-          <h1>Films waiting<br /><em>for your eye.</em></h1>
-          <p>Watch each assigned film and submit one evaluation. Once an evaluation is submitted, that film is locked for your account.</p>
+          <div className="eyebrow"><span /> {isAdmin ? "ADMIN OVERVIEW" : "YOUR ASSIGNMENTS"}</div>
+          <h1>{isAdmin ? <>Run the<br /><em>jury room.</em></> : <>Films waiting<br /><em>for your eye.</em></>}</h1>
+          <p>{isAdmin ? "Manage films, jury members and assignments from the administration tools above." : "Watch each assigned film and submit one evaluation. Once an evaluation is submitted, that film is locked for your account."}</p>
         </div>
         <div className="completion-card">
-          <span>ASSIGNMENTS</span>
+          <span>{isAdmin ? "ASSIGNMENTS" : "ASSIGNMENTS"}</span>
           <strong>{assignments?.length ?? 0}</strong>
-          <small>films assigned</small>
+          <small>{isAdmin ? "your assignments" : "films assigned"}</small>
         </div>
       </section>
 
@@ -74,11 +77,16 @@ export default async function DashboardPage() {
 
         {(!assignments || assignments.length === 0) && (
           <div className="empty-state">
-            <strong>No films assigned yet.</strong>
-            <span>Your assigned films will appear here when the festival administrator publishes them.</span>
+            <strong>{isAdmin ? "No assignments yet." : "No films assigned yet."}</strong>
+            <span>{isAdmin ? "Use the assignment manager to publish films to jury members." : "Your assigned films will appear here when the festival administrator publishes them."}</span>
           </div>
         )}
       </section>
+
+      <style jsx>{`
+        .admin-links{display:flex;align-items:center;gap:14px;margin-right:8px}.admin-links a{color:var(--text-secondary);font-size:9px;font-weight:700;letter-spacing:.05em}.admin-links a:hover{color:white}
+        @media(max-width:800px){.admin-links{display:none}}
+      `}</style>
     </main>
   );
 }
