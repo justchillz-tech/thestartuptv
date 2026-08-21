@@ -82,11 +82,6 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
-
-      <style jsx>{`
-        .admin-links{display:flex;align-items:center;gap:14px;margin-right:8px}.admin-links a{color:var(--text-secondary);font-size:9px;font-weight:700;letter-spacing:.05em}.admin-links a:hover{color:white}
-        @media(max-width:800px){.admin-links{display:none}}
-      `}</style>
     </main>
   );
 }
