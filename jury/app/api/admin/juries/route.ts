@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const origin = new URL(request.url).origin;
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { name },
-      redirectTo: `${origin}/login`,
+      redirectTo: `${origin}/auth/accept-invite`,
     });
 
     if (inviteError || !invited.user) {
