@@ -24,6 +24,8 @@ type Evaluation = {
   juries: { id: string; name: string; email: string } | null;
 };
 
+type RawEvaluation = Omit<Evaluation, "films" | "juries">;
+
 const criteria = [
   ["story_narrative", "Story & Narrative", 15],
   ["direction", "Direction", 15],
@@ -46,20 +48,43 @@ export default async function AdminResultsPage() {
   const { data: jury } = await supabase.from("juries").select("role").eq("id", userId).single();
   if (jury?.role !== "admin") redirect("/dashboard");
 
-  const [{ data: films }, { data: evaluations, error }] = await Promise.all([
+  // evaluations has two foreign keys to films (film_id and drive_file_id),
+  // so nested PostgREST selection of films is ambiguous. Fetch related
+  // records separately and join them in memory.
+  const [{ data: films, error: filmsError }, { data: evaluations, error: evaluationsError }] = await Promise.all([
     supabase.from("films").select("id, film_code, title, director, status").order("created_at", { ascending: true }),
     supabase
       .from("evaluations")
-      .select("id, jury_id, film_id, total, story_narrative, direction, screenplay, cinematography, acting, editing, originality, sound, production_design, overall_impact, remarks, submitted_at, films(id, film_code, title, director), juries(id, name, email)")
+      .select("id, jury_id, film_id, total, story_narrative, direction, screenplay, cinematography, acting, editing, originality, sound, production_design, overall_impact, remarks, submitted_at")
       .order("submitted_at", { ascending: true }),
   ]);
 
-  if (error) throw new Error("Unable to load evaluation results.");
+  if (filmsError || evaluationsError) {
+    console.error("Results query failed", { filmsError, evaluationsError });
+    throw new Error("Unable to load evaluation results.");
+  }
 
-  const rows = (evaluations ?? []) as unknown as Evaluation[];
+  const rawRows = (evaluations ?? []) as RawEvaluation[];
+  const juryIds = [...new Set(rawRows.map((evaluation) => evaluation.jury_id))];
+
+  const { data: juries, error: juriesError } = juryIds.length
+    ? await supabase.from("juries").select("id, name, email").in("id", juryIds)
+    : { data: [], error: null };
+
+  if (juriesError) {
+    console.error("Jury query failed", juriesError);
+    throw new Error("Unable to load jury details.");
+  }
+
   const filmMap = new Map((films ?? []).map((film) => [film.id, film]));
-  const grouped = new Map<string, Evaluation[]>();
+  const juryMap = new Map((juries ?? []).map((member) => [member.id, member]));
+  const rows: Evaluation[] = rawRows.map((evaluation) => ({
+    ...evaluation,
+    films: filmMap.get(evaluation.film_id) ?? null,
+    juries: juryMap.get(evaluation.jury_id) ?? null,
+  }));
 
+  const grouped = new Map<string, Evaluation[]>();
   for (const evaluation of rows) {
     const current = grouped.get(evaluation.film_id) ?? [];
     current.push(evaluation);
