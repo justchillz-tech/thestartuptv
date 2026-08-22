@@ -35,6 +35,7 @@ export default function SubmissionManager() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [approving, setApproving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<Submission | null>(null);
@@ -63,6 +64,47 @@ export default function SubmissionManager() {
     else setMessage(result.message ?? "Submissions synchronized.");
     setSyncing(false);
     await loadSubmissions();
+  }
+  async function approveFilm() {
+    if (!selected) return;
+
+    setApproving(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch("/api/admin/submissions/approve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          submission_id: selected.id,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(result.error ?? "Unable to approve film.");
+        return;
+      }
+
+      setMessage(
+        `Film approved successfully as ${result.film.film_code}.`
+      );
+
+      await loadSubmissions();
+
+      setSelected({
+        ...selected,
+        status: "approved",
+      });
+    } catch {
+      setError("Unable to approve film.");
+    } finally {
+      setApproving(false);
+    }
   }
 
   return (
@@ -134,7 +176,13 @@ export default function SubmissionManager() {
             <div className="modal-actions">
               {selected.film_url && <a className="secondary-button" href={selected.film_url} target="_blank" rel="noopener noreferrer">Open submitted film ↗</a>}
               <span className={`modal-status status-${selected.status}`}>{selected.status}</span>
-              <button className="button button-primary" disabled={selected.status !== "pending"}>Approve film <span>↗</span></button>
+              <button
+                className="button button-primary"
+                onClick={approveFilm}
+                disabled={selected.status !== "pending" || approving}
+              >
+                {approving ? "Approving…" : "Approve film"} <span>↗</span>
+              </button>
             </div>
             <small className="approval-note">Approval will be connected to film creation in the next step. This review screen currently does not alter the submission.</small>
           </section>
