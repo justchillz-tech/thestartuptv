@@ -23,9 +23,19 @@ export default function FilmManager() {
   const [form, setForm] = useState({ film_code: "", title: "", director: "", duration: "", language: "", drive_url: "" });
 
   async function loadFilms() {
-    const { data, error: loadError } = await supabase.from("films").select("id, film_code, title, director, duration, language, drive_url, drive_file_id, status, created_at").order("created_at", { ascending: false });
-    if (loadError) setError(loadError.message);
-    else setFilms(data ?? []);
+    const { data, error: loadError } = await supabase
+      .from("films")
+      .select(
+        "id, film_code, title, director, duration, language, video_url, drive_url, drive_file_id, status, created_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (loadError) {
+      setError(loadError.message);
+    } else {
+      setFilms(data ?? []);
+    }
+
     setLoading(false);
   }
 
@@ -83,7 +93,7 @@ export default function FilmManager() {
         <section className="admin-panel">
           <div className="panel-title"><div><span>SUBMISSIONS</span><h2>Films in the system</h2></div></div>
           {loading ? <div className="empty-state">Loading films…</div> : films.length === 0 ? <div className="empty-state"><strong>No films added yet.</strong><span>Films added above will appear here.</span></div> : (
-            <div className="film-admin-list">{films.map((film) => <article className="film-admin-row" key={film.id}><div className="film-admin-code">{film.film_code}</div><div className="film-admin-main"><strong>{film.title}</strong><span>{film.director} · {film.duration} · {film.language}</span></div><div className="film-admin-status">{film.status}</div><a className="secondary-button admin-watch" href={film.drive_url} target="_blank" rel="noopener noreferrer">Open film ↗</a></article>)}</div>
+            <div className="film-admin-list">{films.map((film) => <article className="film-admin-row" key={film.id}><div className="film-admin-code">{film.film_code}</div><div className="film-admin-main"><strong>{film.title}</strong><span>{film.director} · {film.duration} · {film.language}</span></div><div className="film-admin-status">{film.status}</div><a className="secondary-button admin-watch" href={film.video_url || film.drive_url} target="_blank" rel="noopener noreferrer">Open film ↗</a></article>)}</div>
           )}
         </section>
       </section>

@@ -19,6 +19,24 @@ function extractDriveFileId(url: string) {
     return "";
 }
 
+function isYouTubeUrl(url: string) {
+    try {
+        const parsed = new URL(url);
+
+        const hostname = parsed.hostname.toLowerCase();
+
+        return (
+            hostname === "youtube.com" ||
+            hostname === "www.youtube.com" ||
+            hostname === "m.youtube.com" ||
+            hostname === "youtu.be" ||
+            hostname === "www.youtu.be"
+        );
+    } catch {
+        return false;
+    }
+}
+
 function generateFilmCode() {
     return `STV-${Date.now().toString(36).toUpperCase()}`;
 }
@@ -103,29 +121,45 @@ export async function POST(request: Request) {
             );
         }
 
-        const driveFileId = extractDriveFileId(submission.film_url);
+        const filmUrl = submission.film_url.trim();
+        const driveFileId = extractDriveFileId(filmUrl);
+        const youtubeUrl = isYouTubeUrl(filmUrl);
 
-        if (!driveFileId) {
+        if (!driveFileId && !youtubeUrl) {
             return NextResponse.json(
                 {
                     error:
-                        "The submitted Film URL is not a recognized Google Drive file URL.",
+                        "The submitted Film URL must be a valid Google Drive or YouTube URL.",
                 },
                 { status: 400 }
             );
         }
 
         // Prevent the same Drive file from becoming two films.
-        const { data: existingFilm } = await admin
-            .from("films")
-            .select("id, film_code, title")
-            .eq("drive_file_id", driveFileId)
-            .maybeSingle();
+        let existingFilm = null;
+
+        if (driveFileId) {
+            const { data } = await admin
+                .from("films")
+                .select("id, film_code, title")
+                .eq("drive_file_id", driveFileId)
+                .maybeSingle();
+
+            existingFilm = data;
+        } else if (youtubeUrl) {
+            const { data } = await admin
+                .from("films")
+                .select("id, film_code, title")
+                .eq("video_url", filmUrl)
+                .maybeSingle();
+
+            existingFilm = data;
+        }
 
         if (existingFilm) {
             return NextResponse.json(
                 {
-                    error: `This Google Drive file is already registered as ${existingFilm.film_code}.`,
+                    error: `This video is already registered as ${existingFilm.film_code}.`,
                 },
                 { status: 409 }
             );
@@ -141,8 +175,14 @@ export async function POST(request: Request) {
                 director: submission.director_name,
                 duration: submission.duration,
                 language: submission.language,
-                drive_url: submission.film_url,
-                drive_file_id: driveFileId,
+
+                // Generic source URL for both Drive and YouTube.
+                video_url: filmUrl,
+
+                // Keep Drive-specific fields populated only for Drive submissions.
+                drive_url: driveFileId ? filmUrl : null,
+                drive_file_id: driveFileId || null,
+
                 status: "active",
             })
             .select(
