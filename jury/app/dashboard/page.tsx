@@ -27,7 +27,7 @@ export default async function DashboardPage() {
           <div><strong>Startup TV</strong><span>JURY PORTAL</span></div>
         </Link>
         <div className="header-user">
-          {isAdmin && <div className="admin-links"><Link href="/admin/films">Films</Link><Link href="/admin/juries">Jury</Link><Link href="/admin/assignments">Assignments</Link></div>}
+          {isAdmin && <div className="admin-links"><Link href="/admin/films">Films</Link><Link href="/admin/juries">Jury</Link><Link href="/admin/assignments">Assignments</Link><Link href="/admin/results">Results</Link></div>}
           <div><strong>{jury?.name ?? "Jury Member"}</strong><span>{jury?.email ?? ""}</span></div>
           <SignOutButton />
         </div>
@@ -40,7 +40,7 @@ export default async function DashboardPage() {
           <p>{isAdmin ? "Manage films, jury members and assignments from the administration tools above." : "Watch each assigned film and submit one evaluation. Once an evaluation is submitted, that film is locked for your account."}</p>
         </div>
         <div className="completion-card">
-          <span>{isAdmin ? "ASSIGNMENTS" : "ASSIGNMENTS"}</span>
+          <span>ASSIGNMENTS</span>
           <strong>{assignments?.length ?? 0}</strong>
           <small>{isAdmin ? "your assignments" : "films assigned"}</small>
         </div>
