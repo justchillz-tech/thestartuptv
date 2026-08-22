@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import styles from "./results.module.css";
 
 type Evaluation = {
   id: string;
@@ -53,14 +54,12 @@ export default async function AdminResultsPage() {
       .order("submitted_at", { ascending: true }),
   ]);
 
-  if (error) {
-    throw new Error("Unable to load evaluation results.");
-  }
+  if (error) throw new Error("Unable to load evaluation results.");
 
   const rows = (evaluations ?? []) as unknown as Evaluation[];
   const filmMap = new Map((films ?? []).map((film) => [film.id, film]));
-
   const grouped = new Map<string, Evaluation[]>();
+
   for (const evaluation of rows) {
     const current = grouped.get(evaluation.film_id) ?? [];
     current.push(evaluation);
@@ -72,14 +71,7 @@ export default async function AdminResultsPage() {
       const film = filmMap.get(filmId) ?? filmEvaluations[0]?.films;
       const scores = filmEvaluations.map((evaluation) => evaluation.total);
       const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
-      return {
-        filmId,
-        film,
-        evaluations: filmEvaluations,
-        average,
-        highest: Math.max(...scores),
-        lowest: Math.min(...scores),
-      };
+      return { filmId, film, evaluations: filmEvaluations, average, highest: Math.max(...scores), lowest: Math.min(...scores) };
     })
     .sort((a, b) => b.average - a.average);
 
@@ -97,21 +89,21 @@ export default async function AdminResultsPage() {
         <Link href="/dashboard" className="back-link">← Jury dashboard</Link>
       </header>
 
-      <section className="results-intro">
+      <section className={styles.resultsIntro}>
         <div>
           <div className="eyebrow"><span /> RESULTS &amp; SCORING</div>
           <h1>See the<br /><em>whole picture.</em></h1>
           <p>Review submitted jury scores, compare films and track how many evaluations are still outstanding.</p>
         </div>
-        <div className="results-stats">
+        <div className={styles.resultsStats}>
           <div><span>FILMS</span><strong>{films?.length ?? 0}</strong><small>{pendingFilms} awaiting scores</small></div>
           <div><span>EVALUATIONS</span><strong>{rows.length}</strong><small>{completedFilms} films reviewed</small></div>
           <div><span>AVERAGE</span><strong>{averageScore.toFixed(1)}</strong><small>out of 100</small></div>
         </div>
       </section>
 
-      <section className="results-list">
-        <div className="results-section-head">
+      <section className={styles.resultsList}>
+        <div className={styles.resultsSectionHead}>
           <div><div className="section-kicker">SUBMITTED SCORES</div><h2>Film rankings</h2></div>
           <span>{rankedFilms.length} reviewed</span>
         </div>
@@ -119,40 +111,40 @@ export default async function AdminResultsPage() {
         {rankedFilms.length === 0 ? (
           <div className="empty-state"><strong>No evaluations submitted yet.</strong><span>Scores will appear here as jury members complete their assigned films.</span></div>
         ) : (
-          <div className="ranking-list">
+          <div className={styles.rankingList}>
             {rankedFilms.map((item, index) => (
-              <details className="ranking-card" key={item.filmId}>
+              <details className={styles.rankingCard} key={item.filmId}>
                 <summary>
-                  <span className="rank-number">{String(index + 1).padStart(2, "0")}</span>
-                  <span className="rank-film"><strong>{item.film?.title ?? "Untitled film"}</strong><small>{item.film?.film_code ?? ""} · {item.film?.director ?? ""}</small></span>
-                  <span className="rank-count">{item.evaluations.length} {item.evaluations.length === 1 ? "evaluation" : "evaluations"}</span>
-                  <span className="rank-average"><strong>{item.average.toFixed(1)}</strong><small>/ 100 avg.</small></span>
-                  <span className="rank-chevron">+</span>
+                  <span className={styles.rankNumber}>{String(index + 1).padStart(2, "0")}</span>
+                  <span className={styles.rankFilm}><strong>{item.film?.title ?? "Untitled film"}</strong><small>{item.film?.film_code ?? ""} · {item.film?.director ?? ""}</small></span>
+                  <span className={styles.rankCount}>{item.evaluations.length} {item.evaluations.length === 1 ? "evaluation" : "evaluations"}</span>
+                  <span className={styles.rankAverage}><strong>{item.average.toFixed(1)}</strong><small>/ 100 avg.</small></span>
+                  <span className={styles.rankChevron}>+</span>
                 </summary>
 
-                <div className="result-detail">
-                  <div className="score-summary">
+                <div className={styles.resultDetail}>
+                  <div className={styles.scoreSummary}>
                     <div><span>AVERAGE</span><strong>{item.average.toFixed(1)}</strong></div>
                     <div><span>HIGH</span><strong>{item.highest}</strong></div>
                     <div><span>LOW</span><strong>{item.lowest}</strong></div>
                   </div>
 
-                  <div className="jury-evaluation-list">
+                  <div className={styles.juryEvaluationList}>
                     {item.evaluations.map((evaluation) => (
-                      <article className="jury-evaluation" key={evaluation.id}>
-                        <div className="jury-evaluation-head">
+                      <article className={styles.juryEvaluation} key={evaluation.id}>
+                        <div className={styles.juryEvaluationHead}>
                           <div><strong>{evaluation.juries?.name ?? "Jury member"}</strong><span>{evaluation.juries?.email ?? ""}</span></div>
-                          <strong className="jury-total">{evaluation.total}/100</strong>
+                          <strong className={styles.juryTotal}>{evaluation.total}/100</strong>
                         </div>
 
-                        <div className="criterion-scores">
+                        <div className={styles.criterionScores}>
                           {criteria.map(([key, label, max]) => (
                             <div key={key}><span>{label}</span><strong>{evaluation[key]}/{max}</strong></div>
                           ))}
                         </div>
 
-                        {evaluation.remarks && <div className="result-remarks"><span>REMARKS</span><p>{evaluation.remarks}</p></div>}
-                        <div className="submitted-at">Submitted {new Date(evaluation.submitted_at).toLocaleString()}</div>
+                        {evaluation.remarks && <div className={styles.resultRemarks}><span>REMARKS</span><p>{evaluation.remarks}</p></div>}
+                        <div className={styles.submittedAt}>Submitted {new Date(evaluation.submitted_at).toLocaleString()}</div>
                       </article>
                     ))}
                   </div>
