@@ -27,7 +27,7 @@ export default async function DashboardPage() {
           <div><strong>Startup TV</strong><span>JURY PORTAL</span></div>
         </Link>
         <div className="header-user">
-          {isAdmin && <div className="admin-links"><Link href="/admin/films">Films</Link><Link href="/admin/juries">Jury</Link><Link href="/admin/assignments">Assignments</Link><Link href="/admin/results">Results</Link></div>}
+          {isAdmin && <div className="admin-links"><Link href="/admin/submissions">Submissions</Link><Link href="/admin/films">Films</Link><Link href="/admin/juries">Jury</Link><Link href="/admin/assignments">Assignments</Link><Link href="/admin/results">Results</Link></div>}
           <div><strong>{jury?.name ?? "Jury Member"}</strong><span>{jury?.email ?? ""}</span></div>
           <SignOutButton />
         </div>
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
         <div>
           <div className="eyebrow"><span /> {isAdmin ? "ADMIN OVERVIEW" : "YOUR ASSIGNMENTS"}</div>
           <h1>{isAdmin ? <>Run the<br /><em>jury room.</em></> : <>Films waiting<br /><em>for your eye.</em></>}</h1>
-          <p>{isAdmin ? "Manage films, jury members and assignments from the administration tools above." : "Watch each assigned film and submit one evaluation. Once an evaluation is submitted, that film is locked for your account."}</p>
+          <p>{isAdmin ? "Manage participant submissions, films, jury members and assignments from the administration tools above." : "Watch each assigned film and submit one evaluation. Once an evaluation is submitted, that film is locked for your account."}</p>
         </div>
         <div className="completion-card">
           <span>ASSIGNMENTS</span>
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
         {(!assignments || assignments.length === 0) && (
           <div className="empty-state">
             <strong>{isAdmin ? "No assignments yet." : "No films assigned yet."}</strong>
-            <span>{isAdmin ? "Use the assignment manager to publish films to jury members." : "Your assigned films will appear here when the festival administrator publishes them."}</span>
+            <span>{isAdmin ? "Use the submission and assignment tools to publish films to jury members." : "Your assigned films will appear here when the festival administrator publishes them."}</span>
           </div>
         )}
       </section>
