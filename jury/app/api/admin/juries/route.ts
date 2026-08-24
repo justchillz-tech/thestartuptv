@@ -18,10 +18,10 @@ export async function POST(request: Request) {
     if (!name || !email) return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
 
     const admin = createAdminClient();
-    const origin = new URL(request.url).origin;
+    const appUrl = process.env.APP_URL || new URL(request.url).origin;
     const { data: invited, error: inviteError } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { name },
-      redirectTo: `${origin}/auth/accept-invite`,
+      redirectTo: `${appUrl}/auth/accept-invite`,
     });
 
     if (inviteError || !invited.user) {
