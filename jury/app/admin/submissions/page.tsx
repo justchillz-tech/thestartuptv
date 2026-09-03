@@ -9,7 +9,9 @@ export default async function AdminSubmissionsPage() {
 
   const userId = String(claimsData.claims.sub);
   const { data: jury } = await supabase.from("juries").select("role").eq("id", userId).single();
-  if (jury?.role !== "admin") redirect("/dashboard");
+  if (jury?.role !== "admin" && jury?.role !== "management") {
+    redirect("/dashboard");
+  }
 
   return <SubmissionManager />;
 }

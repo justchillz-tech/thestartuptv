@@ -46,7 +46,9 @@ export default async function AdminResultsPage() {
 
   const userId = String(claimsData.claims.sub);
   const { data: jury } = await supabase.from("juries").select("role").eq("id", userId).single();
-  if (jury?.role !== "admin") redirect("/dashboard");
+  if (jury?.role !== "admin" && jury?.role !== "management") {
+    redirect("/dashboard");
+  }
 
   // evaluations has two foreign keys to films (film_id and drive_file_id),
   // so nested PostgREST selection of films is ambiguous. Fetch related

@@ -34,7 +34,13 @@ function formatDate(value: string | null) {
   });
 }
 
-export default function SubmissionManager() {
+type SubmissionManagerProps = {
+  role: "admin" | "management";
+};
+export default function SubmissionManager({
+  role,
+}: SubmissionManagerProps) {
+  const isAdmin = role === "admin";
   const supabase = createClient();
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -303,29 +309,31 @@ export default function SubmissionManager() {
           </div>
         </div>
 
-        <section className="admin-panel toolbar-panel">
-          <div>
-            <span className="panel-kicker">
-              GOOGLE FORM INTAKE
-            </span>
+        {isAdmin && (
+          <section className="admin-panel toolbar-panel">
+            <div>
+              <span className="panel-kicker">
+                GOOGLE FORM INTAKE
+              </span>
 
-            <h2>Response sheet sync</h2>
+              <h2>Response sheet sync</h2>
 
-            <p>
-              Existing and new responses are synchronized without
-              creating duplicate submissions.
-            </p>
-          </div>
+              <p>
+                Existing and new responses are synchronized without
+                creating duplicate submissions.
+              </p>
+            </div>
 
-          <button
-            className="button button-primary"
-            onClick={syncSheet}
-            disabled={syncing}
-          >
-            {syncing ? "Syncing…" : "Sync submissions"}{" "}
-            <span>↗</span>
-          </button>
-        </section>
+            <button
+              className="button button-primary"
+              onClick={syncSheet}
+              disabled={syncing}
+            >
+              {syncing ? "Syncing…" : "Sync submissions"}{" "}
+              <span>↗</span>
+            </button>
+          </section>
+        )}
 
         {error && (
           <div className="form-error global-message">
@@ -346,39 +354,41 @@ export default function SubmissionManager() {
               <h2>Participant submissions</h2>
             </div>
 
-            <div className="selection-tools">
-              <label className="select-all">
-                <input
-                  type="checkbox"
-                  checked={allPendingSelected}
-                  onChange={toggleAllPending}
-                  disabled={pendingSubmissions.length === 0}
-                />
+            {isAdmin && (
+              <div className="selection-tools">
+                <label className="select-all">
+                  <input
+                    type="checkbox"
+                    checked={allPendingSelected}
+                    onChange={toggleAllPending}
+                    disabled={pendingSubmissions.length === 0}
+                  />
 
-                <span>Select all pending</span>
-              </label>
+                  <span>Select all pending</span>
+                </label>
 
-              {selectedIds.length > 0 && (
-                <>
-                  <span className="selection-count">
-                    {selectedIds.length} selected
-                  </span>
+                {selectedIds.length > 0 && (
+                  <>
+                    <span className="selection-count">
+                      {selectedIds.length} selected
+                    </span>
 
-                  <button
-                    type="button"
-                    className="button button-primary bulk-approve-button"
-                    onClick={approveSelected}
-                    disabled={approving}
-                  >
-                    {approving
-                      ? "Approving…"
-                      : `Approve ${selectedIds.length} film${selectedIds.length === 1 ? "" : "s"
-                      }`}{" "}
-                    <span>↗</span>
-                  </button>
-                </>
-              )}
-            </div>
+                    <button
+                      type="button"
+                      className="button button-primary bulk-approve-button"
+                      onClick={approveSelected}
+                      disabled={approving}
+                    >
+                      {approving
+                        ? "Approving…"
+                        : `Approve ${selectedIds.length} film${selectedIds.length === 1 ? "" : "s"
+                        }`}{" "}
+                      <span>↗</span>
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {loading ? (
@@ -403,7 +413,7 @@ export default function SubmissionManager() {
                   className="submission-row"
                   key={submission.id}
                 >
-                  {submission.status === "pending" ? (
+                  {isAdmin && submission.status === "pending" ? (
                     <input
                       className="submission-checkbox"
                       type="checkbox"
@@ -601,20 +611,21 @@ export default function SubmissionManager() {
               >
                 {selected.status}
               </span>
-
-              <button
-                className="button button-primary"
-                onClick={approveFilm}
-                disabled={
-                  selected.status !== "pending" ||
-                  approving
-                }
-              >
-                {approving
-                  ? "Approving…"
-                  : "Approve film"}{" "}
-                <span>↗</span>
-              </button>
+              {isAdmin && (
+                <button
+                  className="button button-primary"
+                  onClick={approveFilm}
+                  disabled={
+                    selected.status !== "pending" ||
+                    approving
+                  }
+                >
+                  {approving
+                    ? "Approving…"
+                    : "Approve film"}{" "}
+                  <span>↗</span>
+                </button>
+              )}
             </div>
 
             <small className="approval-note">

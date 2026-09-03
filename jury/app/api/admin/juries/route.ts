@@ -15,7 +15,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const name = String(body.name ?? "").trim();
     const email = String(body.email ?? "").trim().toLowerCase();
-    if (!name || !email) return NextResponse.json({ error: "Name and email are required." }, { status: 400 });
+    const role = body.role === "management" ? "management" : "jury";
+
+    if (!name || !email) {
+      return NextResponse.json(
+        { error: "Name and email are required." },
+        { status: 400 }
+      );
+    }
 
     const admin = createAdminClient();
     const appUrl = process.env.APP_URL || new URL(request.url).origin;
@@ -32,7 +39,7 @@ export async function POST(request: Request) {
       id: invited.user.id,
       name,
       email,
-      role: "jury",
+      role,
     });
 
     if (profileError) {
