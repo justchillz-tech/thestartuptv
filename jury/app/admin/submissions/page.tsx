@@ -13,5 +13,5 @@ export default async function AdminSubmissionsPage() {
     redirect("/dashboard");
   }
 
-  return <SubmissionManager />;
+  return <SubmissionManager role={jury.role} />;
 }
