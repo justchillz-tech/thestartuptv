@@ -46,21 +46,20 @@
     submitButton.innerHTML = "Submitting…";
 
     const formData = new FormData(submissionForm);
-    const data = Object.fromEntries(formData.entries());
 
-    // Checkbox values need to be sent as a real boolean.
-    data.rights_confirmation =
-      document.getElementById("rights_confirmation").checked;
+    formData.set(
+      "rights_confirmation",
+      document.getElementById("rights_confirmation").checked
+        ? "true"
+        : "false"
+    );
 
     try {
       const response = await fetch(
         "https://jury.thestartuptv.com/api/public/submissions",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
+          body: formData,
         }
       );
 
