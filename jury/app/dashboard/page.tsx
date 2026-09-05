@@ -140,6 +140,51 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
+      <style jsx>{`
+        .film-card-actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-top: 22px;
+        }
+
+        .film-card-actions .button {
+          width: 100%;
+          box-sizing: border-box;
+          text-align: center;
+        }
+
+        .button-secondary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border: 1px solid var(--glass-border);
+          background: rgba(255, 255, 255, .045);
+          color: #fff;
+          border-radius: 999px;
+          padding: 12px 18px;
+          font-size: 10px;
+          font-weight: 600;
+          text-decoration: none;
+          transition:
+            background .2s ease,
+            border-color .2s ease,
+            transform .2s ease;
+        }
+
+        .button-secondary:hover {
+          background: rgba(255, 255, 255, .08);
+          border-color: rgba(255, 255, 255, .22);
+          transform: translateY(-1px);
+        }
+
+        @media (max-width: 650px) {
+          .film-card-actions {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </main>
   );
 }
