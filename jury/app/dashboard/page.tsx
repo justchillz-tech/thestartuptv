@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   const { data: assignments } = await supabase
     .from("assignments")
-    .select("id, status, films(id, title, director, duration, language, drive_url)")
+    .select("id, status, films(id, title, director, duration, language, drive_url, video_url)")
     .eq("jury_id", userId)
     .order("created_at", { ascending: true });
 
@@ -85,9 +85,14 @@ export default async function DashboardPage() {
 
       <section className="film-grid">
         {(assignments ?? []).map((assignment) => {
-          const film = Array.isArray(assignment.films) ? assignment.films[0] : assignment.films;
+          const film = Array.isArray(assignment.films)
+            ? assignment.films[0]
+            : assignment.films;
+
           if (!film) return null;
+
           const completed = assignment.status === "completed";
+          const filmUrl = film.video_url || film.drive_url;
 
           return (
             <article className={`film-card ${completed ? "completed" : ""}`} key={assignment.id}>
@@ -104,9 +109,25 @@ export default async function DashboardPage() {
               {completed ? (
                 <div className="locked-message">Evaluation submitted. This film is locked for your account.</div>
               ) : (
-                <Link className="button button-primary full-button" href={`/evaluate/${film.id}`}>
-                  Open Evaluation <span>↗</span>
-                </Link>
+                <div className="film-card-actions">
+                  {filmUrl && (
+                    <a
+                      className="button button-secondary"
+                      href={filmUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Watch Film <span>↗</span>
+                    </a>
+                  )}
+
+                  <Link
+                    className="button button-primary"
+                    href={`/evaluate/${film.id}`}
+                  >
+                    Open Evaluation <span>↗</span>
+                  </Link>
+                </div>
               )}
             </article>
           );
