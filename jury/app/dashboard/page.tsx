@@ -140,7 +140,7 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
-      <style jsx>{`
+      <style>{`
         .film-card-actions {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
