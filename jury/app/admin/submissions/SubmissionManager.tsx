@@ -20,6 +20,7 @@ type Submission = {
   language: string | null;
   synopsis: string | null;
   cast_crew: string | null;
+  cast_crew_file_path: string | null;
   film_url: string | null;
   status: "pending" | "approved" | "rejected";
   rejection_reason: string | null;
@@ -60,7 +61,7 @@ export default function SubmissionManager({
     const { data, error: loadError } = await supabase
       .from("film_submissions")
       .select(
-        "id, submitted_at, participant_email, submitted_email, participant_name, contact_number, organization, title, genre, duration, production_year, director_name, producer_name, language, synopsis, cast_crew, film_url, status, rejection_reason"
+        "id, submitted_at, participant_email, submitted_email, participant_name, contact_number, organization, title, genre, duration, production_year, director_name, producer_name, language, synopsis, cast_crew, film_url, status, rejection_reason, cast_crew_file_path"
       )
       .order("submitted_at", { ascending: false });
 
@@ -76,6 +77,47 @@ export default function SubmissionManager({
   useEffect(() => {
     loadSubmissions();
   }, []);
+  async function openCastCrewDocument(submissionId: string) {
+    const newWindow = window.open(
+      "about:blank",
+      "_blank"
+    );
+
+    setError("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/submissions/attachment?submission_id=${encodeURIComponent(
+          submissionId
+        )}`
+      );
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        newWindow?.close();
+
+        setError(
+          result.error ??
+          "Unable to open the Cast & Crew document."
+        );
+
+        return;
+      }
+
+      if (newWindow) {
+        newWindow.location.href = result.url;
+      } else {
+        window.location.href = result.url;
+      }
+    } catch {
+      newWindow?.close();
+
+      setError(
+        "Unable to open the Cast & Crew document."
+      );
+    }
+  }
 
   function toggleSubmission(id: string) {
     setSelectedIds((current) =>
@@ -592,6 +634,18 @@ export default function SubmissionManager({
                 {selected.cast_crew ||
                   "No cast and crew details supplied."}
               </p>
+
+              {selected.cast_crew_file_path && (
+                <button
+                  type="button"
+                  className="secondary-button attachment-button"
+                  onClick={() =>
+                    openCastCrewDocument(selected.id)
+                  }
+                >
+                  View Cast & Crew Document
+                </button>
+              )}
             </div>
 
             <div className="modal-actions">
@@ -1056,6 +1110,10 @@ export default function SubmissionManager({
           .approval-note {
             text-align: left;
           }
+        }
+        .attachment-button {
+          margin-top: 14px;
+          cursor: pointer;
         }
       `}</style>
     </main>
