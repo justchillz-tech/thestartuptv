@@ -409,6 +409,7 @@ export default async function DashboardPage() {
             )}
 
             <Link href="/admin/results">Results</Link>
+            <Link href="/admin/activity">Activity</Link>
           </div>
 
           <div>
