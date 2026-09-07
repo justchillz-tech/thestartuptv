@@ -95,12 +95,13 @@ export async function POST(request: Request) {
 
   const numericScores = Object.fromEntries(Object.keys(limits).map((key) => [key, Number(scores?.[key])])) as Record<ScoreKey, number>;
   const total = Object.values(numericScores).reduce((sum, value) => sum + value, 0);
+  const canonicalFilmUrl = film.video_url ?? filmUrl;
 
   const { error: insertError } = await supabase.from("evaluations").insert({
     jury_id: userId,
     film_id: filmId,
     drive_file_id: driveFileId ?? null,
-    film_url: filmUrl,
+    film_url: canonicalFilmUrl ?? filmUrl,
     ...numericScores,
     total,
     remarks: remarks || null,
