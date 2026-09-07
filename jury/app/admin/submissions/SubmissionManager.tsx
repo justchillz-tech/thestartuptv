@@ -24,6 +24,11 @@ type Submission = {
   film_url: string | null;
   status: "pending" | "approved" | "rejected";
   rejection_reason: string | null;
+  approval_exception: boolean;
+  approval_exception_reason: string | null;
+  approved_film_id: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
 };
 
 function formatDate(value: string | null) {
@@ -48,6 +53,13 @@ export default function SubmissionManager({
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [approvingException, setApprovingException] = useState(false);
+  const [showExceptionForm, setShowExceptionForm] = useState(false);
+  const [exceptionReason, setExceptionReason] = useState("");
+  const [unrejecting, setUnrejecting] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -61,7 +73,7 @@ export default function SubmissionManager({
     const { data, error: loadError } = await supabase
       .from("film_submissions")
       .select(
-        "id, submitted_at, participant_email, submitted_email, participant_name, contact_number, organization, title, genre, duration, production_year, director_name, producer_name, language, synopsis, cast_crew, film_url, status, rejection_reason, cast_crew_file_path"
+        "id, submitted_at, participant_email, submitted_email, participant_name, contact_number, organization, title, genre, duration, production_year, director_name, producer_name, language, synopsis, cast_crew, film_url, status, rejection_reason, cast_crew_file_path, approval_exception, approval_exception_reason, approved_film_id, reviewed_by, reviewed_at"
       )
       .order("submitted_at", { ascending: false });
 
@@ -216,6 +228,200 @@ export default function SubmissionManager({
       setApproving(false);
     }
   }
+  async function rejectFilm() {
+    if (!selected) return;
+
+    const reason = rejectionReason.trim();
+
+    if (!reason) {
+      setError("Please provide a rejection reason.");
+      return;
+    }
+
+    setRejecting(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/admin/submissions/reject",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            submission_id: selected.id,
+            rejection_reason: reason,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(
+          result.error ?? "Unable to reject submission."
+        );
+        return;
+      }
+
+      setMessage("Submission rejected successfully.");
+
+      setSelectedIds((current) =>
+        current.filter((id) => id !== selected.id)
+      );
+
+      await loadSubmissions();
+
+      setSelected({
+        ...selected,
+        status: "rejected",
+        rejection_reason: reason,
+      });
+
+      setRejectionReason("");
+      setShowRejectForm(false);
+    } catch {
+      setError("Unable to reject submission.");
+    } finally {
+      setRejecting(false);
+    }
+  }
+
+  async function approveWithException() {
+    if (!selected) return;
+
+    const reason = exceptionReason.trim();
+
+    if (!reason) {
+      setError("Please provide an exception reason.");
+      return;
+    }
+
+    setApprovingException(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/admin/submissions/approve-exception",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            submission_id: selected.id,
+            approval_exception_reason: reason,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(
+          result.error ??
+          "Unable to approve with exception."
+        );
+        return;
+      }
+
+      setMessage(
+        "Submission approved with exception."
+      );
+
+      setSelectedIds((current) =>
+        current.filter((id) => id !== selected.id)
+      );
+
+      await loadSubmissions();
+
+      setSelected({
+        ...selected,
+        status: "approved",
+        approval_exception: true,
+        approval_exception_reason: reason,
+        approved_film_id: result.film?.id ?? null,
+      });
+
+      setExceptionReason("");
+      setShowExceptionForm(false);
+    } catch {
+      setError(
+        "Unable to approve with exception."
+      );
+    } finally {
+      setApprovingException(false);
+    }
+  }
+  async function unrejectFilm() {
+    if (!selected) return;
+
+    const confirmed = window.confirm(
+      "Unreject this submission and return it to Pending Review?"
+    );
+
+    if (!confirmed) return;
+
+    setUnrejecting(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/admin/submissions/unreject",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            submission_id: selected.id,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(
+          result.error ??
+          "Unable to unreject submission."
+        );
+        return;
+      }
+
+      setMessage(
+        "Submission returned to pending review."
+      );
+
+      setSelectedIds((current) =>
+        current.filter((id) => id !== selected.id)
+      );
+
+      await loadSubmissions();
+
+      setSelected({
+        ...selected,
+        status: "pending",
+        rejection_reason: null,
+        approval_exception: false,
+        approval_exception_reason: null,
+        approved_film_id: null,
+        reviewed_by: null,
+        reviewed_at: null,
+
+      });
+    } catch {
+      setError(
+        "Unable to unreject submission."
+      );
+    } finally {
+      setUnrejecting(false);
+    }
+  }
 
   async function approveSelected() {
     if (selectedIds.length === 0) return;
@@ -296,6 +502,9 @@ export default function SubmissionManager({
     pendingSubmissions.every((submission) =>
       selectedIds.includes(submission.id)
     );
+  const selectedIsExceptionApproved =
+    selected?.status === "approved" &&
+    selected.approval_exception;
 
   return (
     <main className="portal-shell admin-shell">
@@ -665,21 +874,207 @@ export default function SubmissionManager({
               >
                 {selected.status}
               </span>
-              {isAdmin && (
-                <button
-                  className="button button-primary"
-                  onClick={approveFilm}
-                  disabled={
-                    selected.status !== "pending" ||
-                    approving
-                  }
-                >
-                  {approving
-                    ? "Approving…"
-                    : "Approve film"}{" "}
-                  <span>↗</span>
-                </button>
+              {isAdmin && selected.status === "pending" && (
+                <div className="review-actions">
+                  {!showRejectForm && !showExceptionForm ? (
+                    <div className="review-button-row">
+                      <button
+                        type="button"
+                        className="reject-button"
+                        onClick={() => {
+                          setError("");
+                          setMessage("");
+                          setShowRejectForm(true);
+                          setShowExceptionForm(false);
+                        }}
+                        disabled={
+                          approving ||
+                          rejecting ||
+                          approvingException
+                        }
+                      >
+                        Reject Submission
+                      </button>
+
+                      <button
+                        type="button"
+                        className="exception-button"
+                        onClick={() => {
+                          setError("");
+                          setMessage("");
+                          setShowExceptionForm(true);
+                          setShowRejectForm(false);
+                        }}
+                        disabled={
+                          approving ||
+                          rejecting ||
+                          approvingException
+                        }
+                      >
+                        Approve with Exception
+                      </button>
+
+                      <button
+                        type="button"
+                        className="approve-button"
+                        onClick={approveFilm}
+                        disabled={
+                          approving ||
+                          rejecting ||
+                          approvingException
+                        }
+                      >
+                        {approving
+                          ? "Approving..."
+                          : "Approve Film"}
+                      </button>
+                    </div>
+                  ) : showRejectForm ? (
+                    <div className="reject-panel">
+                      <div className="reject-panel-title">
+                        REJECTION REASON
+                      </div>
+
+                      <textarea
+                        value={rejectionReason}
+                        onChange={(event) =>
+                          setRejectionReason(event.target.value)
+                        }
+                        placeholder="Enter the reason for rejecting this submission..."
+                        maxLength={1000}
+                        rows={4}
+                        disabled={rejecting}
+                      />
+
+                      <div className="reject-panel-footer">
+                        <span>
+                          {rejectionReason.length}/1000
+                        </span>
+
+                        <div className="reject-panel-buttons">
+                          <button
+                            type="button"
+                            className="cancel-button"
+                            onClick={() => {
+                              setShowRejectForm(false);
+                              setRejectionReason("");
+                              setError("");
+                            }}
+                            disabled={rejecting}
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            type="button"
+                            className="reject-confirm-button"
+                            onClick={rejectFilm}
+                            disabled={
+                              rejecting ||
+                              !rejectionReason.trim()
+                            }
+                          >
+                            {rejecting
+                              ? "Rejecting..."
+                              : "Confirm Rejection"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="exception-panel">
+                      <div className="exception-panel-title">
+                        APPROVAL EXCEPTION
+                      </div>
+
+                      <p>
+                        This will approve the submission despite
+                        missing or invalid normal submission
+                        requirements. Please record why the exception
+                        is being granted.
+                      </p>
+
+                      <textarea
+                        value={exceptionReason}
+                        onChange={(event) =>
+                          setExceptionReason(event.target.value)
+                        }
+                        placeholder="Enter the reason for approving this submission with an exception..."
+                        maxLength={1000}
+                        rows={4}
+                        disabled={approvingException}
+                      />
+
+                      <div className="exception-panel-footer">
+                        <span>
+                          {exceptionReason.length}/1000
+                        </span>
+
+                        <div className="exception-panel-buttons">
+                          <button
+                            type="button"
+                            className="cancel-button"
+                            onClick={() => {
+                              setShowExceptionForm(false);
+                              setExceptionReason("");
+                              setError("");
+                            }}
+                            disabled={approvingException}
+                          >
+                            Cancel
+                          </button>
+
+                          <button
+                            type="button"
+                            className="exception-confirm-button"
+                            onClick={approveWithException}
+                            disabled={
+                              approvingException ||
+                              !exceptionReason.trim()
+                            }
+                          >
+                            {approvingException
+                              ? "Approving..."
+                              : "Confirm Exception Approval"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
+              {isAdmin && selected.status === "rejected" && (
+                <div className="review-actions">
+                  <button
+                    type="button"
+                    className="unreject-button"
+                    onClick={unrejectFilm}
+                    disabled={unrejecting}
+                  >
+                    {unrejecting
+                      ? "Returning to Review..."
+                      : "Unreject Submission"}
+                  </button>
+                  {selectedIsExceptionApproved && (
+                    <div className="exception-info">
+                      <div className="exception-badge">
+                        APPROVED WITH EXCEPTION
+                      </div>
+
+                      {selected.approval_exception_reason && (
+                        <div className="exception-note">
+                          <strong>Exception reason</strong>
+                          <span>
+                            {selected.approval_exception_reason}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+              )}
+
             </div>
 
             <small className="approval-note">
@@ -1114,6 +1509,289 @@ export default function SubmissionManager({
         .attachment-button {
           margin-top: 14px;
           cursor: pointer;
+        }
+        .review-actions {
+          margin-top: 24px;
+        }
+
+        .reject-panel {
+          padding: 18px;
+          border: 1px solid rgba(255, 92, 92, 0.22);
+          border-radius: 16px;
+          background: rgba(255, 92, 92, 0.045);
+        }
+
+        .reject-panel-title {
+          margin-bottom: 10px;
+          color: rgba(255, 255, 255, 0.42);
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+        }
+
+        .reject-panel textarea {
+          width: 100%;
+          min-height: 110px;
+          resize: vertical;
+          padding: 13px 14px;
+          border: 1px solid rgba(255, 255, 255, 0.10);
+          border-radius: 10px;
+          outline: none;
+          background: rgba(0, 0, 0, 0.20);
+          color: #fff;
+          font: inherit;
+          line-height: 1.5;
+          box-sizing: border-box;
+        }
+
+        .reject-panel textarea:focus {
+          border-color: rgba(239, 106, 55, 0.55);
+        }
+
+        .reject-panel textarea::placeholder {
+          color: rgba(255, 255, 255, 0.28);
+        }
+
+        .reject-panel-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-top: 10px;
+        }
+
+        .reject-panel-footer > span {
+          color: rgba(255, 255, 255, 0.25);
+          font-size: 10px;
+        }
+
+        .reject-panel-buttons {
+          display: flex;
+          gap: 10px;
+        }
+
+        .reject-button,
+        .approve-button,
+        .cancel-button,
+        .reject-confirm-button {
+          border: 0;
+          border-radius: 10px;
+          padding: 11px 16px;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .reject-button {
+          background: rgba(255, 92, 92, 0.10);
+          color: #ff8585;
+          border: 1px solid rgba(255, 92, 92, 0.22);
+        }
+
+        .reject-button:hover {
+          background: rgba(255, 92, 92, 0.16);
+        }
+
+        .approve-button {
+          background: linear-gradient(
+            135deg,
+            #f3961f,
+            #ef6a37
+          );
+          color: #fff;
+        }
+
+        .cancel-button {
+          background: rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        .reject-confirm-button {
+          background: #d95353;
+          color: #fff;
+        }
+
+        .reject-button:disabled,
+        .approve-button:disabled,
+        .cancel-button:disabled,
+        .reject-confirm-button:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .unreject-button {
+          border: 1px solid rgba(246, 166, 35, 0.28);
+          border-radius: 10px;
+          padding: 11px 16px;
+          background: rgba(246, 166, 35, 0.08);
+          color: #f6b94a;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .unreject-button:hover {
+          background: rgba(246, 166, 35, 0.14);
+        }
+
+        .unreject-button:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+
+        .review-button-row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .exception-button {
+          border: 1px solid rgba(180, 100, 255, 0.28);
+          border-radius: 10px;
+          padding: 11px 16px;
+          background: rgba(180, 100, 255, 0.08);
+          color: #d09cff;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: opacity 0.2s ease, background 0.2s ease;
+        }
+
+        .exception-button:hover {
+          background: rgba(180, 100, 255, 0.15);
+        }
+
+        .exception-panel {
+          padding: 18px;
+          border: 1px solid rgba(180, 100, 255, 0.24);
+          border-radius: 16px;
+          background: rgba(180, 100, 255, 0.045);
+        }
+
+        .exception-panel-title {
+          margin-bottom: 8px;
+          color: #d09cff;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+        }
+
+        .exception-panel p {
+          margin: 0 0 12px;
+          color: rgba(255, 255, 255, 0.48);
+          font-size: 10px;
+          line-height: 1.6;
+        }
+
+        .exception-panel textarea {
+          width: 100%;
+          min-height: 110px;
+          resize: vertical;
+          padding: 13px 14px;
+          border: 1px solid rgba(255, 255, 255, 0.10);
+          border-radius: 10px;
+          outline: none;
+          background: rgba(0, 0, 0, 0.20);
+          color: #fff;
+          font: inherit;
+          line-height: 1.5;
+          box-sizing: border-box;
+        }
+
+        .exception-panel textarea:focus {
+          border-color: rgba(180, 100, 255, 0.55);
+        }
+
+        .exception-panel textarea::placeholder {
+          color: rgba(255, 255, 255, 0.28);
+        }
+
+        .exception-panel-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          margin-top: 10px;
+        }
+
+        .exception-panel-footer > span {
+          color: rgba(255, 255, 255, 0.25);
+          font-size: 10px;
+        }
+
+        .exception-panel-buttons {
+          display: flex;
+          gap: 10px;
+        }
+
+        .exception-confirm-button {
+          border: 0;
+          border-radius: 10px;
+          padding: 11px 16px;
+          background: linear-gradient(
+            135deg,
+            #963694,
+            #b464ff
+          );
+          color: #fff;
+          font: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .exception-confirm-button:disabled,
+        .exception-button:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+        .exception-info {
+          width: 100%;
+          margin-top: 12px;
+          flex-basis: 100%;
+        }
+
+        .exception-badge {
+          display: inline-flex;
+          align-items: center;
+          padding: 6px 9px;
+          border: 1px solid rgba(180, 100, 255, 0.25);
+          border-radius: 7px;
+          background: rgba(180, 100, 255, 0.08);
+          color: #d09cff;
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: 0.10em;
+        }
+
+        .exception-note {
+          display: grid;
+          gap: 5px;
+          margin-top: 10px;
+          padding: 12px 14px;
+          border-left: 2px solid #963694;
+          background: rgba(180, 100, 255, 0.04);
+          border-radius: 0 8px 8px 0;
+        }
+
+        .exception-note strong {
+          color: #d09cff;
+          font-size: 9px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+        }
+
+        .exception-note span {
+          color: #c7cad8;
+          font-size: 10px;
+          line-height: 1.6;
+          overflow-wrap: anywhere;
         }
       `}</style>
     </main>
