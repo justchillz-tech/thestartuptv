@@ -12,6 +12,14 @@ type RecentSubmission = {
   submitted_at: string;
 };
 
+type JuryProgress = {
+  id: string;
+  name: string;
+  assigned: number;
+  reviewed: number;
+  pending: number;
+};
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -279,13 +287,18 @@ export default async function DashboardPage() {
    * Management does not need assignment-table access for the
    * dashboard, preserving the existing read-only permission model.
    */
-  let assignments: { id: string; film_id: string; status: string }[] = [];
+  let assignments: {
+    id: string;
+    jury_id: string;
+    film_id: string;
+    status: string;
+  }[] = [];
 
   if (isAdmin) {
     const { data: assignmentData, error: assignmentsError } =
       await supabase
         .from("assignments")
-        .select("id, film_id, status");
+        .select("id, jury_id, film_id, status");
 
     if (assignmentsError) {
       console.error("Assignment analytics query failed", assignmentsError);
@@ -375,6 +388,44 @@ export default async function DashboardPage() {
   const managementMembers =
     juries?.filter((member) => member.role === "management").length ?? 0;
 
+  const juryProgress: JuryProgress[] = (juries ?? [])
+    .filter((member) => member.role === "jury")
+    .map((member) => {
+      const assignedFilmIds = new Set(
+        assignments
+          .filter(
+            (assignment) =>
+              assignment.jury_id === member.id
+          )
+          .map((assignment) => assignment.film_id)
+      );
+
+      const reviewedFilmIds = new Set(
+        (evaluations ?? [])
+          .filter(
+            (evaluation) =>
+              evaluation.jury_id === member.id
+          )
+          .map((evaluation) => evaluation.film_id)
+      );
+
+      const assignedCount = isAdmin
+        ? assignedFilmIds.size
+        : reviewedFilmIds.size;
+
+      const reviewedCount = reviewedFilmIds.size;
+
+      return {
+        id: member.id,
+        name: member.name,
+        assigned: assignedCount,
+        reviewed: reviewedCount,
+        pending: Math.max(
+          assignedCount - reviewedCount,
+          0
+        ),
+      };
+    });
   /*
    * Recent submissions
    */
@@ -593,6 +644,61 @@ export default async function DashboardPage() {
             <span>
               {juryMembers} jury members · {managementMembers} management
             </span>
+          </div>
+          <div className="jury-progress-list">
+            <div className="jury-progress-list-head">
+              <span>JURY MEMBER</span>
+              <span>REVIEWED</span>
+              <span>PROGRESS</span>
+            </div>
+
+            {juryProgress.map((member) => {
+              const percentage =
+                member.assigned > 0
+                  ? Math.round(
+                    (member.reviewed / member.assigned) * 100
+                  )
+                  : 0;
+
+              return (
+                <div
+                  className="jury-progress-row"
+                  key={member.id}
+                >
+                  <div className="jury-progress-name">
+                    <strong>{member.name}</strong>
+
+                    <small>
+                      {member.reviewed} reviewed
+                      {isAdmin &&
+                        ` · ${member.pending} pending`}
+                    </small>
+                  </div>
+
+                  <strong className="jury-progress-count">
+                    {member.reviewed}
+                    {isAdmin && (
+                      <small>
+                        / {member.assigned}
+                      </small>
+                    )}
+                  </strong>
+
+                  <div className="jury-progress-bar-wrap">
+                    <div className="jury-progress-bar">
+                      <div
+                        className="jury-progress-fill"
+                        style={{
+                          width: `${percentage}%`,
+                        }}
+                      />
+                    </div>
+
+                    <span>{percentage}%</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
