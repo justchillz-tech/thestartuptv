@@ -428,20 +428,7 @@ export default async function ActivityPage({
                 return false;
             }
 
-            if (
-                juryFilter !== "all" &&
-                event.type === "evaluation" &&
-                !evaluations.some(
-                    (evaluation) =>
-                        evaluation.film_id === event.filmId &&
-                        juryMap.get(
-                            evaluation.jury_id
-                        )?.name === juryFilter
-                )
-            ) {
-                return false;
-            }
-
+            
             if (
                 juryFilter !== "all" &&
                 event.type !== "evaluation"
@@ -482,13 +469,7 @@ export default async function ActivityPage({
      * jury name so the event list is precise.
      */
 
-    const finalEvents =
-        juryFilter === "all"
-            ? filteredEvents
-            : filteredEvents.filter(
-                (event) =>
-                    event.juryName === juryFilter
-            );
+    const finalEvents = filteredEvents;
 
     const activeFilterCount =
         [
