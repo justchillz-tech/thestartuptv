@@ -21,6 +21,13 @@ type ActivityEvent = {
     status: string | null;
     description: string;
 };
+type FilmActivityGroup = {
+    filmId: string;
+    filmCode: string;
+    title: string;
+    director: string;
+    events: ActivityEvent[];
+};
 
 type SearchParams = {
     q?: string;
@@ -428,7 +435,7 @@ export default async function ActivityPage({
                 return false;
             }
 
-            
+
             if (
                 juryFilter !== "all" &&
                 event.type !== "evaluation"
@@ -470,6 +477,40 @@ export default async function ActivityPage({
      */
 
     const finalEvents = filteredEvents;
+
+    const filmGroups = new Map<string, FilmActivityGroup>();
+
+    for (const event of finalEvents) {
+        if (!event.filmId) {
+            continue;
+        }
+
+        const existing = filmGroups.get(event.filmId);
+
+        if (existing) {
+            existing.events.push(event);
+            continue;
+        }
+
+        filmGroups.set(event.filmId, {
+            filmId: event.filmId,
+            filmCode: event.filmCode,
+            title: event.title,
+            director: event.director,
+            events: [event],
+        });
+    }
+
+    const groupedActivities = Array.from(
+        filmGroups.values()
+    ).map((group) => ({
+        ...group,
+        events: group.events.sort(
+            (a, b) =>
+                new Date(a.timestamp).getTime() -
+                new Date(b.timestamp).getTime()
+        ),
+    }));
 
     const activeFilterCount =
         [
@@ -775,92 +816,103 @@ export default async function ActivityPage({
                         </span>
                     </div>
                 ) : (
-                    <div className="activity-timeline"
+                    <div
+                        className="activity-timeline"
                         style={{
                             maxHeight: "720px",
                             overflowY: "auto",
                             paddingRight: "12px",
                         }}
                     >
-                        {finalEvents.slice(0, 50).map((event) => (
+                        {groupedActivities.map((group) => (
                             <article
-                                className={`activity-event activity-${event.type}`}
-                                key={event.id}
+                                className="activity-film-group"
+                                key={group.filmId}
                             >
-                                <div className="activity-marker">
-                                    <span />
+                                <div className="activity-film-group-header">
+                                    <div>
+                                        <span className="activity-film-code">
+                                            {group.filmCode}
+                                        </span>
+
+                                        <h3>
+                                            {group.title}
+                                        </h3>
+
+                                        {group.director && (
+                                            <span>
+                                                Director · {group.director}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <span className="activity-film-event-count">
+                                        {group.events.length} event
+                                        {group.events.length === 1
+                                            ? ""
+                                            : "s"}
+                                    </span>
                                 </div>
 
-                                <div className="activity-content">
-                                    <div className="activity-top">
-                                        <div>
-                                            <span className="activity-type">
-                                                {eventLabel(
-                                                    event.type
-                                                )}
-                                            </span>
-
-                                            <time>
-                                                {formatDate(
-                                                    event.timestamp
-                                                )}
-                                            </time>
-                                        </div>
-
-                                        {event.score !==
-                                            null && (
-                                                <strong className="activity-score">
-                                                    {event.score}
-                                                    <small>
-                                                        / 100
-                                                    </small>
-                                                </strong>
-                                            )}
-                                    </div>
-
-                                    <div className="activity-main">
-                                        <div>
-                                            <div className="activity-film-code">
-                                                {event.filmCode}
+                                <div className="activity-film-events">
+                                    {group.events.map((event) => (
+                                        <div
+                                            className={`activity-film-event activity-${event.type}`}
+                                            key={event.id}
+                                        >
+                                            <div className="activity-marker">
+                                                <span />
                                             </div>
 
-                                            <h3>
-                                                {eventTitle(
-                                                    event
-                                                )}
-                                            </h3>
+                                            <div className="activity-content">
+                                                <div className="activity-top">
+                                                    <div>
+                                                        <span className="activity-type">
+                                                            {eventLabel(
+                                                                event.type
+                                                            )}
+                                                        </span>
 
-                                            <p>
-                                                {eventDescription(
-                                                    event
-                                                )}
-                                            </p>
+                                                        <time>
+                                                            {formatDate(
+                                                                event.timestamp
+                                                            )}
+                                                        </time>
+                                                    </div>
+
+                                                    {event.score !== null && (
+                                                        <strong className="activity-score">
+                                                            {event.score}
+                                                            <small>
+                                                                / 100
+                                                            </small>
+                                                        </strong>
+                                                    )}
+                                                </div>
+
+                                                <div className="activity-main">
+                                                    <div>
+                                                        <h4>
+                                                            {eventTitle(event)}
+                                                        </h4>
+
+                                                        <p>
+                                                            {eventDescription(event)}
+                                                        </p>
+                                                    </div>
+
+                                                    {event.juryName && (
+                                                        <div className="activity-film">
+                                                            <span>
+                                                                Jury ·{" "}
+                                                                {event.juryName}
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-
-                                        <div className="activity-film">
-                                            <strong>
-                                                {event.title}
-                                            </strong>
-
-                                            {event.director && (
-                                                <span>
-                                                    Director ·{" "}
-                                                    {
-                                                        event.director
-                                                    }
-                                                </span>
-                                            )}
-
-                                            {event.juryName && (
-                                                <span>
-                                                    Jury ·{" "}
-                                                    {
-                                                        event.juryName
-                                                    }
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </article>
                         ))}
