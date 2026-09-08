@@ -13,6 +13,70 @@
 })();
 
 /* =========================================
+   REFERRAL CODE
+   ========================================= */
+
+(() => {
+  const referralInput = document.getElementById("referral_code");
+
+  if (!referralInput) return;
+
+  const REFERRAL_STORAGE_KEY = "stv_festival_referral_code";
+
+  // Capture referral code from /r/<code>
+  const pathParts = window.location.pathname
+    .split("/")
+    .filter(Boolean);
+
+  const referralIndex = pathParts.indexOf("r");
+
+  if (
+    referralIndex !== -1 &&
+    pathParts[referralIndex + 1]
+  ) {
+    const referralCode = decodeURIComponent(
+      pathParts[referralIndex + 1]
+    )
+      .trim()
+      .toUpperCase();
+
+    if (referralCode) {
+      sessionStorage.setItem(
+        REFERRAL_STORAGE_KEY,
+        referralCode
+      );
+    }
+  }
+
+  // Restore referral code when the submission section is reached
+  const savedReferralCode =
+    sessionStorage.getItem(REFERRAL_STORAGE_KEY);
+
+  if (savedReferralCode) {
+    referralInput.value = savedReferralCode;
+  }
+
+  // If the user manually enters a code, preserve it
+  referralInput.addEventListener("input", () => {
+    const value = referralInput.value.trim().toUpperCase();
+
+    referralInput.value = value;
+
+    if (value) {
+      sessionStorage.setItem(
+        REFERRAL_STORAGE_KEY,
+        value
+      );
+    } else {
+      sessionStorage.removeItem(
+        REFERRAL_STORAGE_KEY
+      );
+    }
+  });
+})();
+
+
+/* =========================================
    FILM FESTIVAL SUBMISSION
    ========================================= */
 
