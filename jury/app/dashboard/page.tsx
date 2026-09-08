@@ -57,6 +57,25 @@ export default async function DashboardPage() {
       .eq("jury_id", userId)
       .order("created_at", { ascending: true });
 
+    const assignedFilmIds = (assignments ?? [])
+      .map((assignment) => {
+        const film = Array.isArray(assignment.films)
+          ? assignment.films[0]
+          : assignment.films;
+
+        return film?.id;
+      })
+      .filter((id): id is string => Boolean(id));
+
+    const { data: submissions } = assignedFilmIds.length
+      ? await supabase
+        .from("film_submissions")
+        .select(
+          "approved_film_id, participant_name, organization, genre, duration, production_year, director_name, producer_name, language, synopsis, cast_crew"
+        )
+        .in("approved_film_id", assignedFilmIds)
+      : { data: [] };
+
     return (
       <main className="portal-shell">
         <header className="portal-header">
@@ -113,6 +132,9 @@ export default async function DashboardPage() {
 
             const completed = assignment.status === "completed";
             const filmUrl = film.video_url || film.drive_url;
+            const submission = (submissions ?? []).find(
+              (item) => item.approved_film_id === film.id
+            );
 
             return (
               <article
@@ -139,6 +161,77 @@ export default async function DashboardPage() {
                     Language <strong>{film.language}</strong>
                   </span>
                 </div>
+
+                <details className="film-details">
+                  <summary>
+                    View Film Details
+                    <span>＋</span>
+                  </summary>
+
+                  {submission ? (
+                    <div className="film-details-content">
+                      <div className="film-details-grid">
+                        <div>
+                          <span>Participant</span>
+                          <strong>{submission.participant_name || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Organization</span>
+                          <strong>{submission.organization || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Genre</span>
+                          <strong>{submission.genre || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Production Year</span>
+                          <strong>{submission.production_year || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Director</span>
+                          <strong>{submission.director_name || film.director || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Producer</span>
+                          <strong>{submission.producer_name || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Language</span>
+                          <strong>{submission.language || film.language || "—"}</strong>
+                        </div>
+
+                        <div>
+                          <span>Duration</span>
+                          <strong>{submission.duration || film.duration || "—"}</strong>
+                        </div>
+                      </div>
+
+                      {submission.synopsis && (
+                        <div className="film-details-block">
+                          <span>Synopsis</span>
+                          <p>{submission.synopsis}</p>
+                        </div>
+                      )}
+
+                      {submission.cast_crew && (
+                        <div className="film-details-block">
+                          <span>Cast &amp; Crew</span>
+                          <p>{submission.cast_crew}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="film-details-empty">
+                      Submission details are unavailable.
+                    </div>
+                  )}
+                </details>
 
                 {completed ? (
                   <div className="locked-message">
