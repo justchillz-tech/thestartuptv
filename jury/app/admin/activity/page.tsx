@@ -605,10 +605,7 @@ export default async function ActivityPage({
 
                     <small>
                         {activeFilterCount > 0
-                            ? `${activeFilterCount} active filter${activeFilterCount === 1
-                                ? ""
-                                : "s"
-                            }`
+                            ? `${finalEvents.length} matching event${finalEvents.length === 1 ? "" : "s"}`
                             : "all recorded activity"}
                     </small>
                 </div>
