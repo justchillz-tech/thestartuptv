@@ -123,6 +123,9 @@ export async function POST(request: Request) {
         const filmUrl = clean(
             formData.get("film_url")
         );
+        const referralCode = clean(
+            formData.get("referral_code")
+        ).toUpperCase();
 
         const rightsConfirmation =
             formData.get("rights_confirmation") === "true";
@@ -198,8 +201,10 @@ export async function POST(request: Request) {
             );
         }
 
+        const admin = createAdminClient();
         let uploadedFilePath: string | null = null;
-
+        let referrerId: string | null = null;
+        let validatedReferralCode: string | null = null;
         /*
          * Validate and upload Cast & Crew document.
          */
