@@ -205,6 +205,48 @@ export async function POST(request: Request) {
         let uploadedFilePath: string | null = null;
         let referrerId: string | null = null;
         let validatedReferralCode: string | null = null;
+
+        /*
+ * Validate referral code.
+ */
+        if (referralCode) {
+            const { data: referrer, error: referrerError } =
+                await admin
+                    .from("festival_referrers")
+                    .select("id, referral_code")
+                    .eq("referral_code", referralCode)
+                    .eq("is_active", true)
+                    .maybeSingle();
+
+            if (referrerError) {
+                console.error(
+                    "Referral validation database error:",
+                    referrerError
+                );
+
+                return response(
+                    {
+                        error:
+                            "We could not validate the referral code. Please try again.",
+                    },
+                    500
+                );
+            }
+
+            if (!referrer) {
+                return response(
+                    {
+                        error:
+                            "The referral code you entered is invalid or inactive.",
+                    },
+                    400
+                );
+            }
+
+            referrerId = referrer.id;
+            validatedReferralCode = referrer.referral_code;
+        }
+
         /*
          * Validate and upload Cast & Crew document.
          */
@@ -235,8 +277,6 @@ export async function POST(request: Request) {
                     400
                 );
             }
-
-            const admin = createAdminClient();
 
             const fileName = safeFileName(
                 uploadedFile.name
@@ -279,7 +319,6 @@ export async function POST(request: Request) {
         /*
          * Save submission record.
          */
-        const admin = createAdminClient();
 
         const { data, error } = await admin
             .from("film_submissions")
@@ -335,6 +374,12 @@ export async function POST(request: Request) {
                 film_url:
                     filmUrl,
 
+                referral_code:
+                    validatedReferralCode,
+
+                referrer_id:
+                    referrerId,
+
                 status:
                     "pending",
             })
@@ -366,6 +411,26 @@ export async function POST(request: Request) {
                 },
                 500
             );
+        }
+
+        /*
+         * Create referral credit.
+         */
+        if (referrerId && validatedReferralCode && data?.id) {
+            const { error: creditError } = await admin
+                .from("festival_referral_credits")
+                .insert({
+                    referrer_id: referrerId,
+                    participant_email: participantEmail,
+                    submission_id: data.id,
+                });
+
+            if (creditError && creditError.code !== "23505") {
+                console.error(
+                    "Referral credit database error:",
+                    creditError
+                );
+            }
         }
 
         return response(
