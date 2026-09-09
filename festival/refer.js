@@ -31,6 +31,10 @@
         "showQrButton"
     );
 
+    const shareReferralButton = document.getElementById(
+        "shareReferralButton"
+    );
+
     const qrContainer = document.getElementById(
         "qrContainer"
     );
@@ -276,5 +280,76 @@
 
         }
     );
+    /*
+ * Share referral link
+ */
 
+    shareReferralButton.addEventListener(
+        "click",
+        async () => {
+
+            const referralUrl =
+                referralUrlInput.value;
+
+            if (!referralUrl) return;
+
+            const shareData = {
+                title: "Startup TV Film Festival",
+                text:
+                    "Submit your film to the Startup TV Film Festival.",
+                url: referralUrl
+            };
+
+            try {
+
+                if (navigator.share) {
+
+                    await navigator.share(shareData);
+
+                } else {
+
+                    /*
+                     * Fallback for browsers that do not
+                     * support the native share sheet.
+                     */
+
+                    await navigator.clipboard.writeText(
+                        referralUrl
+                    );
+
+                    const originalText =
+                        shareReferralButton.innerHTML;
+
+                    shareReferralButton.innerHTML =
+                        "Link Copied ✓";
+
+                    setTimeout(() => {
+
+                        shareReferralButton.innerHTML =
+                            originalText;
+
+                    }, 1800);
+
+                }
+
+            } catch (error) {
+
+                /*
+                 * AbortError simply means the user
+                 * closed the share sheet.
+                 */
+
+                if (error.name !== "AbortError") {
+
+                    console.error(
+                        "Referral sharing error:",
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+    );
 })();

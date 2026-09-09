@@ -1610,3 +1610,21 @@ details p {
     align-items: flex-start;
   }
 }
+
+/* Referral action button text */
+
+.referral-link-row .button {
+  color: #ffffff;
+}
+
+.referral-link-row .button:hover {
+  color: #ffffff;
+}
+
+.referral-actions .button-ghost {
+  color: #ffffff;
+}
+
+.referral-actions .button-ghost:hover {
+  color: #ffffff;
+}
