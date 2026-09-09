@@ -23,20 +23,12 @@
 
   const REFERRAL_STORAGE_KEY = "stv_festival_referral_code";
 
-  // Capture referral code from /r/<code>
-  const pathParts = window.location.pathname
-    .split("/")
-    .filter(Boolean);
+  const pathMatch = window.location.pathname.match(
+    /^\/r\/([^/]+)\/?$/
+  );
 
-  const referralIndex = pathParts.indexOf("r");
-
-  if (
-    referralIndex !== -1 &&
-    pathParts[referralIndex + 1]
-  ) {
-    const referralCode = decodeURIComponent(
-      pathParts[referralIndex + 1]
-    )
+  if (pathMatch && pathMatch[1]) {
+    const referralCode = decodeURIComponent(pathMatch[1])
       .trim()
       .toUpperCase();
 
@@ -48,7 +40,6 @@
     }
   }
 
-  // Restore referral code when the submission section is reached
   const savedReferralCode =
     sessionStorage.getItem(REFERRAL_STORAGE_KEY);
 
@@ -56,9 +47,10 @@
     referralInput.value = savedReferralCode;
   }
 
-  // If the user manually enters a code, preserve it
   referralInput.addEventListener("input", () => {
-    const value = referralInput.value.trim().toUpperCase();
+    const value = referralInput.value
+      .trim()
+      .toUpperCase();
 
     referralInput.value = value;
 
