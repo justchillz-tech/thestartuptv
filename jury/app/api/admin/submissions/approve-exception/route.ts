@@ -91,7 +91,21 @@ export async function POST(request: Request) {
       .eq("id", submissionId)
       .single();
 
-    if (submissionError || !submission) {
+    if (submissionError) {
+      console.error(
+        "Exception submission lookup error:",
+        submissionError
+      );
+
+      return NextResponse.json(
+        {
+          error: submissionError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!submission) {
       return NextResponse.json(
         {
           error: "Submission not found.",
