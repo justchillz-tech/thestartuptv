@@ -85,7 +85,6 @@ export async function POST(request: Request) {
         duration,
         language,
         film_url,
-        drive_file_id,
         status
       `)
       .eq("id", submissionId)
@@ -141,27 +140,6 @@ export async function POST(request: Request) {
     /*
      * Prevent duplicate Drive/video records.
      */
-    if (submission.drive_file_id) {
-      const { data: duplicateDrive } =
-        await admin
-          .from("films")
-          .select("id")
-          .eq(
-            "drive_file_id",
-            submission.drive_file_id
-          )
-          .maybeSingle();
-
-      if (duplicateDrive) {
-        return NextResponse.json(
-          {
-            error:
-              "This Drive file is already registered as a film.",
-          },
-          { status: 409 }
-        );
-      }
-    }
 
     if (submission.film_url) {
       const { data: duplicateUrl } =
@@ -205,8 +183,7 @@ export async function POST(request: Request) {
           submission.language || "Not provided",
         video_url:
           submission.film_url || null,
-        drive_file_id:
-          submission.drive_file_id || null,
+        drive_file_id: null,
         status: "active",
       })
       .select()
