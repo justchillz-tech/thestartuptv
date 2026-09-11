@@ -20,8 +20,29 @@ type JuryProgress = {
   pending: number;
 };
 
-export default async function DashboardPage() {
+type DashboardSearchParams = {
+  q?: string;
+  status?: string;
+  jury?: string;
+  evaluation?: string;
+  from?: string;
+  to?: string;
+};
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<DashboardSearchParams>;
+}) {
   const supabase = await createClient();
+  const params = await searchParams;
+
+  const query = (params.q ?? "").trim().toLowerCase();
+  const statusFilter = params.status ?? "all";
+  const juryFilter = params.jury ?? "all";
+  const evaluationFilter = params.evaluation ?? "all";
+  const fromFilter = params.from ?? "";
+  const toFilter = params.to ?? "";
 
   const { data: claimsData } = await supabase.auth.getClaims();
 
@@ -121,6 +142,7 @@ export default async function DashboardPage() {
             <small>films assigned</small>
           </div>
         </section>
+
 
         <section className="film-grid">
           {(assignments ?? []).map((assignment) => {
@@ -338,7 +360,7 @@ export default async function DashboardPage() {
     supabase
       .from("film_submissions")
       .select(
-        "id, title, participant_name, organization, status, submitted_at"
+        "id, title, participant_name, organization, status, submitted_at, approved_film_id"
       )
       .order("submitted_at", { ascending: false }),
 
@@ -375,10 +397,10 @@ export default async function DashboardPage() {
   }
 
   /*
-   * Admin gets assignment statistics.
+   * Admin and management gets assignment statistics.
    *
-   * Management does not need assignment-table access for the
-   * dashboard, preserving the existing read-only permission model.
+   * Management has read-only access for the
+   * management_read_assignments RLS policy.
    */
   let assignments: {
     id: string;
@@ -387,7 +409,7 @@ export default async function DashboardPage() {
     status: string;
   }[] = [];
 
-  if (isAdmin) {
+  if (isAdmin || isManagement) {
     const { data: assignmentData, error: assignmentsError } =
       await supabase
         .from("assignments")
@@ -400,33 +422,222 @@ export default async function DashboardPage() {
 
     assignments = assignmentData ?? [];
   }
+  /*
+   * ---------------------------------------------------------
+   * DASHBOARD FILTERING
+   * ---------------------------------------------------------
+   */
+
+  const allSubmissions = submissions ?? [];
+  const allFilms = films ?? [];
+  const allEvaluations = evaluations ?? [];
+
+  const filmById = new Map(
+    allFilms.map((film) => [film.id, film])
+  );
+
+  const allEvaluatedFilmIds = new Set(
+    allEvaluations.map(
+      (evaluation) => evaluation.film_id
+    )
+  );
+
+  const juryAssignmentFilmIds =
+    juryFilter !== "all"
+      ? new Set(
+        assignments
+          .filter(
+            (assignment) =>
+              assignment.jury_id === juryFilter
+          )
+          .map(
+            (assignment) =>
+              assignment.film_id
+          )
+      )
+      : null;
+
+  const juryEvaluationFilmIds =
+    juryFilter !== "all"
+      ? new Set(
+        allEvaluations
+          .filter(
+            (evaluation) =>
+              evaluation.jury_id === juryFilter
+          )
+          .map(
+            (evaluation) =>
+              evaluation.film_id
+          )
+      )
+      : null;
+
+  const filteredSubmissions =
+    allSubmissions.filter((submission) => {
+      const film = submission.approved_film_id
+        ? filmById.get(
+          submission.approved_film_id
+        )
+        : undefined;
+
+      if (
+        statusFilter !== "all" &&
+        submission.status !== statusFilter
+      ) {
+        return false;
+      }
+
+      if (fromFilter) {
+        const submittedDate =
+          submission.submitted_at?.slice(0, 10);
+
+        if (
+          !submittedDate ||
+          submittedDate < fromFilter
+        ) {
+          return false;
+        }
+      }
+
+      if (toFilter) {
+        const submittedDate =
+          submission.submitted_at?.slice(0, 10);
+
+        if (
+          !submittedDate ||
+          submittedDate > toFilter
+        ) {
+          return false;
+        }
+      }
+
+      if (query) {
+        const searchText = [
+          submission.title,
+          submission.participant_name,
+          submission.organization,
+          film?.film_code,
+          film?.title,
+          film?.director,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        if (!searchText.includes(query)) {
+          return false;
+        }
+      }
+
+      if (
+        juryAssignmentFilmIds &&
+        (!submission.approved_film_id ||
+          !juryAssignmentFilmIds.has(
+            submission.approved_film_id
+          ))
+      ) {
+        return false;
+      }
+
+      const filmId =
+        submission.approved_film_id;
+
+      const isEvaluated = filmId
+        ? (
+          juryFilter === "all"
+            ? allEvaluatedFilmIds
+            : juryEvaluationFilmIds
+        )?.has(filmId) ?? false
+        : false;
+
+      if (
+        evaluationFilter === "evaluated" &&
+        !isEvaluated
+      ) {
+        return false;
+      }
+
+      if (
+        evaluationFilter === "pending" &&
+        isEvaluated
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+  const filteredFilmIds = new Set(
+    filteredSubmissions
+      .map(
+        (submission) =>
+          submission.approved_film_id
+      )
+      .filter(
+        (id): id is string => Boolean(id)
+      )
+  );
+
+  const filteredFilms = allFilms.filter(
+    (film) => filteredFilmIds.has(film.id)
+  );
+
+  const filteredAssignments =
+    assignments.filter(
+      (assignment) =>
+        filteredFilmIds.has(
+          assignment.film_id
+        ) &&
+        (
+          juryFilter === "all" ||
+          assignment.jury_id === juryFilter
+        )
+    );
+
+  const filteredEvaluations =
+    allEvaluations.filter(
+      (evaluation) =>
+        filteredFilmIds.has(
+          evaluation.film_id
+        ) &&
+        (
+          juryFilter === "all" ||
+          evaluation.jury_id === juryFilter
+        )
+    );
 
   /*
    * Submission metrics
    */
-  const totalSubmissions = submissions?.length ?? 0;
+  const totalSubmissions = filteredSubmissions.length;
 
   const pendingSubmissions =
-    submissions?.filter((item) => item.status === "pending").length ?? 0;
+    filteredSubmissions.filter(
+      (item) => item.status === "pending"
+    ).length;
 
   const approvedSubmissions =
-    submissions?.filter((item) => item.status === "approved").length ?? 0;
+    filteredSubmissions.filter(
+      (item) => item.status === "approved"
+    ).length;
 
   const rejectedSubmissions =
-    submissions?.filter((item) => item.status === "rejected").length ?? 0;
+    filteredSubmissions.filter(
+      (item) => item.status === "rejected"
+    ).length;
 
   /*
    * Film metrics
    */
-  const totalFilms = films?.length ?? 0;
+  const totalFilms = filteredFilms.length;
 
   /*
    * Evaluation metrics
    */
-  const totalEvaluations = evaluations?.length ?? 0;
+  const totalEvaluations = filteredEvaluations.length;
 
   const evaluatedFilmIds = new Set(
-    (evaluations ?? []).map((evaluation) => evaluation.film_id)
+    filteredEvaluations.map((evaluation) => evaluation.film_id)
   );
 
   const evaluatedFilms = evaluatedFilmIds.size;
@@ -439,13 +650,13 @@ export default async function DashboardPage() {
   /*
    * Assignment metrics
    */
-  const totalAssignments = assignments.length;
+  const totalAssignments = filteredAssignments.length;
 
-  const completedAssignments = assignments.filter(
+  const completedAssignments = filteredAssignments.filter(
     (assignment) => assignment.status === "completed"
   ).length;
 
-  const pendingAssignments = assignments.filter(
+  const pendingAssignments = filteredAssignments.filter(
     (assignment) => assignment.status !== "completed"
   ).length;
 
@@ -457,7 +668,7 @@ export default async function DashboardPage() {
   /*
    * Score metrics
    */
-  const scores = (evaluations ?? [])
+  const scores = filteredEvaluations
     .map((evaluation) => Number(evaluation.total))
     .filter((score) => Number.isFinite(score));
 
@@ -485,28 +696,34 @@ export default async function DashboardPage() {
     .filter((member) => member.role === "jury")
     .map((member) => {
       const assignedFilmIds = new Set(
-        assignments
+        filteredAssignments
           .filter(
             (assignment) =>
               assignment.jury_id === member.id
           )
-          .map((assignment) => assignment.film_id)
+          .map(
+            (assignment) =>
+              assignment.film_id
+          )
       );
 
       const reviewedFilmIds = new Set(
-        (evaluations ?? [])
+        filteredEvaluations
           .filter(
             (evaluation) =>
               evaluation.jury_id === member.id
           )
-          .map((evaluation) => evaluation.film_id)
+          .map(
+            (evaluation) =>
+              evaluation.film_id
+          )
       );
 
-      const assignedCount = isAdmin
-        ? assignedFilmIds.size
-        : reviewedFilmIds.size;
+      const assignedCount =
+        assignedFilmIds.size;
 
-      const reviewedCount = reviewedFilmIds.size;
+      const reviewedCount =
+        reviewedFilmIds.size;
 
       return {
         id: member.id,
@@ -519,12 +736,7 @@ export default async function DashboardPage() {
         ),
       };
     });
-  /*
-   * Recent submissions
-   */
-  const recentSubmissions: RecentSubmission[] = (
-    submissions ?? []
-  ).slice(0, 5);
+  const recentSubmissions: RecentSubmission[] = filteredSubmissions.slice(0, 5);
 
   return (
     <main className="portal-shell">
@@ -590,6 +802,145 @@ export default async function DashboardPage() {
           <small>Data from the jury system</small>
         </div>
       </section>
+
+      <form
+        method="get"
+        action="/dashboard"
+        className="dashboard-filters"
+      >
+        <div className="dashboard-filter-field search-field">
+          <label htmlFor="dashboard-search">
+            SEARCH
+          </label>
+
+          <input
+            id="dashboard-search"
+            name="q"
+            type="text"
+            placeholder="Film, director, participant..."
+            defaultValue={params.q ?? ""}
+          />
+        </div>
+
+        <div className="dashboard-filter-field">
+          <label htmlFor="dashboard-status">
+            STATUS
+          </label>
+
+          <select
+            id="dashboard-status"
+            name="status"
+            defaultValue={statusFilter}
+          >
+            <option value="all">
+              All statuses
+            </option>
+            <option value="pending">
+              Pending
+            </option>
+            <option value="approved">
+              Approved
+            </option>
+            <option value="rejected">
+              Rejected
+            </option>
+          </select>
+        </div>
+
+        <div className="dashboard-filter-field">
+          <label htmlFor="dashboard-jury">
+            JURY
+          </label>
+
+          <select
+            id="dashboard-jury"
+            name="jury"
+            defaultValue={juryFilter}
+          >
+            <option value="all">
+              All jury members
+            </option>
+
+            {(juries ?? [])
+              .filter(
+                (member) =>
+                  member.role === "jury"
+              )
+              .map((member) => (
+                <option
+                  key={member.id}
+                  value={member.id}
+                >
+                  {member.name}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div className="dashboard-filter-field">
+          <label htmlFor="dashboard-evaluation">
+            EVALUATION
+          </label>
+
+          <select
+            id="dashboard-evaluation"
+            name="evaluation"
+            defaultValue={evaluationFilter}
+          >
+            <option value="all">
+              All evaluations
+            </option>
+            <option value="evaluated">
+              Evaluated
+            </option>
+            <option value="pending">
+              Pending evaluation
+            </option>
+          </select>
+        </div>
+
+        <div className="dashboard-filter-field">
+          <label htmlFor="dashboard-from">
+            FROM
+          </label>
+
+          <input
+            id="dashboard-from"
+            name="from"
+            type="date"
+            defaultValue={fromFilter}
+          />
+        </div>
+
+        <div className="dashboard-filter-field">
+          <label htmlFor="dashboard-to">
+            TO
+          </label>
+
+          <input
+            id="dashboard-to"
+            name="to"
+            type="date"
+            defaultValue={toFilter}
+          />
+        </div>
+
+        <div className="dashboard-filter-actions">
+          <button
+            type="submit"
+            className="button button-primary"
+          >
+            Apply Filters
+          </button>
+
+          <Link
+            href="/dashboard"
+            className="dashboard-filter-clear"
+          >
+            Clear
+          </Link>
+        </div>
+      </form>
 
       {/* -------------------------------------------------- */}
       {/* SUBMISSION FUNNEL */}
@@ -749,47 +1100,149 @@ export default async function DashboardPage() {
               const percentage =
                 member.assigned > 0
                   ? Math.round(
-                    (member.reviewed / member.assigned) * 100
+                    (member.reviewed /
+                      member.assigned) *
+                    100
                   )
                   : 0;
 
+              const assignedFilms =
+                filteredAssignments
+                  .filter(
+                    (assignment) =>
+                      assignment.jury_id ===
+                      member.id
+                  )
+                  .map((assignment) => {
+                    const film = filmById.get(
+                      assignment.film_id
+                    );
+
+                    if (!film) return null;
+
+                    const evaluation =
+                      filteredEvaluations.find(
+                        (item) =>
+                          item.film_id ===
+                          assignment.film_id &&
+                          item.jury_id ===
+                          member.id
+                      );
+
+                    return {
+                      assignment,
+                      film,
+                      evaluation,
+                    };
+                  })
+                  .filter(Boolean);
+
               return (
-                <div
-                  className="jury-progress-row"
+                <details
+                  className="jury-progress-details"
                   key={member.id}
                 >
-                  <div className="jury-progress-name">
-                    <strong>{member.name}</strong>
+                  <summary className="jury-progress-row">
+                    <div className="jury-progress-name">
+                      <strong>{member.name}</strong>
 
-                    <small>
-                      {member.reviewed} reviewed
-                      {isAdmin &&
-                        ` · ${member.pending} pending`}
-                    </small>
-                  </div>
-
-                  <strong className="jury-progress-count">
-                    {member.reviewed}
-                    {isAdmin && (
                       <small>
-                        / {member.assigned}
+                        {member.reviewed} reviewed
+                        {isAdmin &&
+                          ` · ${member.pending} pending`}
                       </small>
-                    )}
-                  </strong>
-
-                  <div className="jury-progress-bar-wrap">
-                    <div className="jury-progress-bar">
-                      <div
-                        className="jury-progress-fill"
-                        style={{
-                          width: `${percentage}%`,
-                        }}
-                      />
                     </div>
 
-                    <span>{percentage}%</span>
+                    <strong className="jury-progress-count">
+                      {member.reviewed}
+
+                      {isAdmin && (
+                        <small>
+                          / {member.assigned}
+                        </small>
+                      )}
+                    </strong>
+
+                    <div className="jury-progress-bar-wrap">
+                      <div className="jury-progress-bar">
+                        <div
+                          className="jury-progress-fill"
+                          style={{
+                            width: `${percentage}%`,
+                          }}
+                        />
+                      </div>
+
+                      <span>
+                        {percentage}%
+                      </span>
+                    </div>
+                  </summary>
+
+                  <div className="jury-assigned-films">
+                    <div className="jury-assigned-films-head">
+                      ASSIGNED FILMS
+                    </div>
+
+                    {assignedFilms.length === 0 ? (
+                      <div className="jury-assigned-empty">
+                        No films match the current filters.
+                      </div>
+                    ) : (
+                      <div className="jury-assigned-film-list">
+                        {assignedFilms.map(
+                          (item) => {
+                            if (!item) return null;
+
+                            return (
+                              <div
+                                className="jury-assigned-film"
+                                key={
+                                  item.assignment.id
+                                }
+                              >
+                                <div>
+                                  <span>
+                                    {item.film.film_code}
+                                  </span>
+
+                                  <strong>
+                                    {item.film.title}
+                                  </strong>
+
+                                  <small>
+                                    Directed by{" "}
+                                    {item.film.director}
+                                  </small>
+                                </div>
+
+                                <div className="jury-assigned-film-status">
+                                  <span
+                                    className={
+                                      item.evaluation
+                                        ? "evaluated"
+                                        : "pending"
+                                    }
+                                  >
+                                    {item.evaluation
+                                      ? "EVALUATED"
+                                      : "PENDING"}
+                                  </span>
+
+                                  {item.evaluation && (
+                                    <strong>
+                                      {item.evaluation.total}
+                                    </strong>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
+                </details>
               );
             })}
           </div>
@@ -1332,6 +1785,224 @@ export default async function DashboardPage() {
           }
 
           .recent-side {
+            text-align: left;
+          }
+        }
+          .dashboard-filters {
+          width: min(1240px, 90vw);
+          margin: 0 auto 35px;
+          padding: 18px;
+          display: grid;
+          grid-template-columns:
+            minmax(220px, 1.7fr)
+            repeat(3, minmax(150px, 1fr))
+            repeat(2, minmax(130px, .8fr))
+            auto;
+          gap: 12px;
+          align-items: end;
+          border: 1px solid var(--glass-border);
+          background: rgba(255, 255, 255, .035);
+          border-radius: 18px;
+        }
+
+        .dashboard-filter-field {
+          display: grid;
+          gap: 7px;
+        }
+
+        .dashboard-filter-field label {
+          color: var(--text-secondary);
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: .14em;
+        }
+
+        .dashboard-filter-field input,
+        .dashboard-filter-field select {
+          width: 100%;
+          min-height: 42px;
+          padding: 10px 12px;
+          border: 1px solid var(--glass-border);
+          border-radius: 10px;
+          outline: none;
+          background: rgba(255, 255, 255, .045);
+          color: white;
+          font-size: 11px;
+        }
+
+        .dashboard-filter-field select option {
+          background: #0b1023;
+          color: white;
+        }
+
+        .dashboard-filter-field input:focus,
+        .dashboard-filter-field select:focus {
+          border-color: rgba(243, 150, 31, .55);
+        }
+
+        .dashboard-filter-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .dashboard-filter-actions .button {
+          min-height: 42px;
+          white-space: nowrap;
+          padding: 10px 18px;
+        }
+
+        .dashboard-filter-clear {
+          color: var(--text-secondary);
+          font-size: 10px;
+          white-space: nowrap;
+        }
+
+        .dashboard-filter-clear:hover {
+          color: white;
+        }
+
+        .jury-progress-details {
+          border-bottom: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .jury-progress-details:last-child {
+          border-bottom: 0;
+        }
+
+        .jury-progress-details summary {
+          list-style: none;
+          cursor: pointer;
+        }
+
+        .jury-progress-details summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .jury-progress-details summary:hover
+        .jury-progress-name strong {
+          color: #ffffff;
+        }
+
+        .jury-progress-details[open]
+        .jury-progress-row {
+          background: rgba(255, 255, 255, .025);
+        }
+
+        .jury-assigned-films {
+          padding: 0 18px 18px;
+        }
+
+        .jury-assigned-films-head {
+          margin-bottom: 10px;
+          color: var(--text-secondary);
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: .16em;
+        }
+
+        .jury-assigned-film-list {
+          display: grid;
+          gap: 8px;
+        }
+
+        .jury-assigned-film {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+          padding: 12px 14px;
+          border: 1px solid rgba(255, 255, 255, .07);
+          border-radius: 12px;
+          background: rgba(255, 255, 255, .025);
+        }
+
+        .jury-assigned-film > div:first-child {
+          min-width: 0;
+        }
+
+        .jury-assigned-film span {
+          display: block;
+          margin-bottom: 3px;
+          color: var(--text-secondary);
+          font-size: 8px;
+          letter-spacing: .12em;
+        }
+
+        .jury-assigned-film strong {
+          display: block;
+          color: white;
+          font-size: 12px;
+        }
+
+        .jury-assigned-film small {
+          display: block;
+          margin-top: 3px;
+          color: var(--text-secondary);
+          font-size: 9px;
+        }
+
+        .jury-assigned-film-status {
+          flex: 0 0 auto;
+          text-align: right;
+        }
+
+        .jury-assigned-film-status span {
+          margin: 0;
+          font-size: 8px;
+          font-weight: 700;
+        }
+
+        .jury-assigned-film-status span.evaluated {
+          color: #8ee6b2;
+        }
+
+        .jury-assigned-film-status span.pending {
+          color: #f0a36b;
+        }
+
+        .jury-assigned-film-status strong {
+          margin-top: 3px;
+          font-size: 18px;
+        }
+
+        .jury-assigned-empty {
+          padding: 12px 0;
+          color: var(--text-secondary);
+          font-size: 10px;
+        }
+
+        @media (max-width: 1100px) {
+          .dashboard-filters {
+            grid-template-columns:
+              repeat(3, minmax(0, 1fr));
+          }
+
+          .search-field {
+            grid-column: 1 / -1;
+          }
+
+          .dashboard-filter-actions {
+            grid-column: 1 / -1;
+          }
+        }
+
+        @media (max-width: 650px) {
+          .dashboard-filters {
+            grid-template-columns: 1fr;
+          }
+
+          .search-field,
+          .dashboard-filter-actions {
+            grid-column: auto;
+          }
+
+          .jury-assigned-film {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .jury-assigned-film-status {
             text-align: left;
           }
         }
