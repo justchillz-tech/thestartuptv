@@ -360,13 +360,13 @@ export default async function DashboardPage({
     supabase
       .from("film_submissions")
       .select(
-        "id, title, participant_name, organization, status, submitted_at, approved_film_id"
+        "id, title, participant_name, organization, language, status, submitted_at, approved_film_id"
       )
       .order("submitted_at", { ascending: false }),
 
     supabase
       .from("films")
-      .select("id, film_code, title, director, status, created_at")
+      .select("id, film_code, title, director, language, status, created_at")
       .order("created_at", { ascending: false }),
 
     supabase
@@ -516,9 +516,11 @@ export default async function DashboardPage({
           submission.title,
           submission.participant_name,
           submission.organization,
+          submission.language,
           film?.film_code,
           film?.title,
           film?.director,
+          film?.language,
         ]
           .filter(Boolean)
           .join(" ")
@@ -737,6 +739,24 @@ export default async function DashboardPage({
       };
     });
   const recentSubmissions: RecentSubmission[] = filteredSubmissions.slice(0, 5);
+
+  const buildDashboardUrl = (statusOverride?: string) => {
+    const search = new URLSearchParams();
+
+    if (params.q) search.set("q", params.q);
+    if (statusOverride && statusOverride !== "all") {
+      search.set("status", statusOverride);
+    }
+    if (juryFilter !== "all") search.set("jury", juryFilter);
+    if (evaluationFilter !== "all") {
+      search.set("evaluation", evaluationFilter);
+    }
+    if (fromFilter) search.set("from", fromFilter);
+    if (toFilter) search.set("to", toFilter);
+
+    const queryString = search.toString();
+    return queryString ? `/dashboard?${queryString}` : "/dashboard";
+  };
 
   return (
     <main className="portal-shell">
@@ -959,29 +979,41 @@ export default async function DashboardPage({
         </div>
 
         <div className="analytics-grid analytics-grid-four">
-          <div className="metric-card">
+          <Link
+            href={buildDashboardUrl("all")}
+            className="metric-card metric-card-link"
+          >
             <span>TOTAL SUBMISSIONS</span>
             <strong>{totalSubmissions}</strong>
             <small>all participant entries</small>
-          </div>
+          </Link>
 
-          <div className="metric-card metric-highlight">
+          <Link
+            href={buildDashboardUrl("pending")}
+            className="metric-card metric-highlight metric-card-link"
+          >
             <span>PENDING REVIEW</span>
             <strong>{pendingSubmissions}</strong>
             <small>awaiting admin review</small>
-          </div>
+          </Link>
 
-          <div className="metric-card">
+          <Link
+            href={buildDashboardUrl("approved")}
+            className="metric-card metric-card-link"
+          >
             <span>APPROVED</span>
             <strong>{approvedSubmissions}</strong>
             <small>accepted into festival</small>
-          </div>
+          </Link>
 
-          <div className="metric-card">
+          <Link
+            href={buildDashboardUrl("rejected")}
+            className="metric-card metric-card-link"
+          >
             <span>REJECTED</span>
             <strong>{rejectedSubmissions}</strong>
             <small>not accepted</small>
-          </div>
+          </Link>
         </div>
       </section>
 
@@ -1493,6 +1525,28 @@ export default async function DashboardPage({
           border-radius: 18px;
           background: rgba(255,255,255,.025);
           box-sizing: border-box;
+        }
+
+        .metric-card-link {
+          display: block;
+          color: inherit;
+          text-decoration: none;
+          cursor: pointer;
+          transition:
+            transform .2s ease,
+            border-color .2s ease,
+            background .2s ease;
+        }
+
+        .metric-card-link:hover {
+          transform: translateY(-2px);
+          border-color: rgba(255,255,255,.14);
+          background: rgba(255,255,255,.045);
+        }
+
+        .metric-card-link:focus-visible {
+          outline: 2px solid rgba(243,150,31,.7);
+          outline-offset: 3px;
         }
 
         .metric-card > span,
