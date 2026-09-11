@@ -66,6 +66,7 @@ export default function SubmissionManager({
 
   const [selected, setSelected] = useState<Submission | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [unapproving, setUnapproving] = useState(false);
 
   async function loadSubmissions() {
     setLoading(true);
@@ -354,6 +355,63 @@ export default function SubmissionManager({
       );
     } finally {
       setApprovingException(false);
+    }
+  }
+  async function unapproveFilm() {
+    if (!selected) return;
+
+    const confirmed = window.confirm(
+      "Unapprove this film and return the submission to Pending Review?"
+    );
+
+    if (!confirmed) return;
+
+    setUnapproving(true);
+    setMessage("");
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/admin/submissions/unapprove",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            submission_id: selected.id,
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setError(
+          result.error ?? "Unable to unapprove submission."
+        );
+        return;
+      }
+
+      setMessage(
+        "Submission returned to pending review."
+      );
+
+      await loadSubmissions();
+
+      setSelected({
+        ...selected,
+        status: "pending",
+        approved_film_id: null,
+        reviewed_by: null,
+        reviewed_at: null,
+        approval_exception: false,
+        approval_exception_reason: null,
+      });
+    } catch {
+      setError("Unable to unapprove submission.");
+    } finally {
+      setUnapproving(false);
     }
   }
   async function unrejectFilm() {
@@ -1073,6 +1131,37 @@ export default function SubmissionManager({
                   )}
                 </div>
 
+              )}
+              {isAdmin && selected.status === "approved" && (
+                <div className="review-actions">
+                  <button
+                    type="button"
+                    className="unapprove-button"
+                    onClick={unapproveFilm}
+                    disabled={unapproving}
+                  >
+                    {unapproving
+                      ? "Returning to Review..."
+                      : "Unapprove Film"}
+                  </button>
+
+                  {selected.approval_exception && (
+                    <div className="exception-info">
+                      <div className="exception-badge">
+                        APPROVED WITH EXCEPTION
+                      </div>
+
+                      {selected.approval_exception_reason && (
+                        <div className="exception-note">
+                          <strong>Exception reason</strong>
+                          <span>
+                            {selected.approval_exception_reason}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
 
             </div>
