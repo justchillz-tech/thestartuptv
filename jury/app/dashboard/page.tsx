@@ -27,6 +27,7 @@ type DashboardSearchParams = {
   evaluation?: string;
   from?: string;
   to?: string;
+  pipeline?: string;
 };
 
 export default async function DashboardPage({
@@ -43,6 +44,7 @@ export default async function DashboardPage({
   const evaluationFilter = params.evaluation ?? "all";
   const fromFilter = params.from ?? "";
   const toFilter = params.to ?? "";
+  const pipelineFilter = params.pipeline ?? "";
 
   const { data: claimsData } = await supabase.auth.getClaims();
 
@@ -472,102 +474,119 @@ export default async function DashboardPage({
       )
       : null;
 
-  const filteredSubmissions =
-    allSubmissions.filter((submission) => {
-      const film = submission.approved_film_id
-        ? filmById.get(
+  const baseFilteredSubmissions = allSubmissions.filter((submission) => {
+    const film = submission.approved_film_id
+      ? filmById.get(submission.approved_film_id)
+      : undefined;
+
+    if (fromFilter) {
+      const submittedDate =
+        submission.submitted_at?.slice(0, 10);
+
+      if (
+        !submittedDate ||
+        submittedDate < fromFilter
+      ) {
+        return false;
+      }
+    }
+
+    if (toFilter) {
+      const submittedDate =
+        submission.submitted_at?.slice(0, 10);
+
+      if (
+        !submittedDate ||
+        submittedDate > toFilter
+      ) {
+        return false;
+      }
+    }
+
+    if (query) {
+      const searchText = [
+        submission.title,
+        submission.participant_name,
+        submission.organization,
+        submission.language,
+        film?.film_code,
+        film?.title,
+        film?.director,
+        film?.language,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      if (!searchText.includes(query)) {
+        return false;
+      }
+    }
+
+    if (
+      juryAssignmentFilmIds &&
+      (!submission.approved_film_id ||
+        !juryAssignmentFilmIds.has(
           submission.approved_film_id
+        ))
+    ) {
+      return false;
+    }
+
+    const filmId =
+      submission.approved_film_id;
+
+    const isEvaluated = filmId
+      ? (
+        juryFilter === "all"
+          ? allEvaluatedFilmIds
+          : juryEvaluationFilmIds
+      )?.has(filmId) ?? false
+      : false;
+
+    if (
+      evaluationFilter === "evaluated" &&
+      !isEvaluated
+    ) {
+      return false;
+    }
+
+    if (
+      evaluationFilter === "pending" &&
+      isEvaluated
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+
+  const filteredSubmissions =
+    statusFilter === "all"
+      ? baseFilteredSubmissions
+      : baseFilteredSubmissions.filter(
+        (submission) =>
+          submission.status === statusFilter
+      );
+
+  const pipelineSubmissions =
+    pipelineFilter === "all"
+      ? filteredSubmissions
+      : pipelineFilter
+        ? filteredSubmissions.filter(
+          (submission) =>
+            submission.status === pipelineFilter
         )
-        : undefined;
+        : [];
 
-      if (
-        statusFilter !== "all" &&
-        submission.status !== statusFilter
-      ) {
-        return false;
-      }
-
-      if (fromFilter) {
-        const submittedDate =
-          submission.submitted_at?.slice(0, 10);
-
-        if (
-          !submittedDate ||
-          submittedDate < fromFilter
-        ) {
-          return false;
-        }
-      }
-
-      if (toFilter) {
-        const submittedDate =
-          submission.submitted_at?.slice(0, 10);
-
-        if (
-          !submittedDate ||
-          submittedDate > toFilter
-        ) {
-          return false;
-        }
-      }
-
-      if (query) {
-        const searchText = [
-          submission.title,
-          submission.participant_name,
-          submission.organization,
-          submission.language,
-          film?.film_code,
-          film?.title,
-          film?.director,
-          film?.language,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-
-        if (!searchText.includes(query)) {
-          return false;
-        }
-      }
-
-      if (
-        juryAssignmentFilmIds &&
-        (!submission.approved_film_id ||
-          !juryAssignmentFilmIds.has(
-            submission.approved_film_id
-          ))
-      ) {
-        return false;
-      }
-
-      const filmId =
-        submission.approved_film_id;
-
-      const isEvaluated = filmId
-        ? (
-          juryFilter === "all"
-            ? allEvaluatedFilmIds
-            : juryEvaluationFilmIds
-        )?.has(filmId) ?? false
-        : false;
-
-      if (
-        evaluationFilter === "evaluated" &&
-        !isEvaluated
-      ) {
-        return false;
-      }
-
-      if (
-        evaluationFilter === "pending" &&
-        isEvaluated
-      ) {
-        return false;
-      }
-
-      return true;
-    });
+  const pipelineLabel =
+    pipelineFilter === "pending"
+      ? "Pending review"
+      : pipelineFilter === "approved"
+        ? "Approved"
+        : pipelineFilter === "rejected"
+          ? "Rejected"
+          : "Total submissions";
 
   const filteredFilmIds = new Set(
     filteredSubmissions
@@ -740,12 +759,12 @@ export default async function DashboardPage({
     });
   const recentSubmissions: RecentSubmission[] = filteredSubmissions.slice(0, 5);
 
-  const buildDashboardUrl = (statusOverride?: string) => {
+  const buildPipelineUrl = (pipeline: string) => {
     const search = new URLSearchParams();
 
     if (params.q) search.set("q", params.q);
-    if (statusOverride && statusOverride !== "all") {
-      search.set("status", statusOverride);
+    if (statusFilter !== "all") {
+      search.set("status", statusFilter);
     }
     if (juryFilter !== "all") search.set("jury", juryFilter);
     if (evaluationFilter !== "all") {
@@ -753,6 +772,7 @@ export default async function DashboardPage({
     }
     if (fromFilter) search.set("from", fromFilter);
     if (toFilter) search.set("to", toFilter);
+    if (pipeline) search.set("pipeline", pipeline);
 
     const queryString = search.toString();
     return queryString ? `/dashboard?${queryString}` : "/dashboard";
@@ -980,8 +1000,9 @@ export default async function DashboardPage({
 
         <div className="analytics-grid analytics-grid-four">
           <Link
-            href={buildDashboardUrl("all")}
-            className="metric-card metric-card-link"
+            href={buildPipelineUrl("all")}
+            className={`metric-card metric-card-link ${pipelineFilter === "all" ? "metric-card-active" : ""
+              }`}
           >
             <span>TOTAL SUBMISSIONS</span>
             <strong>{totalSubmissions}</strong>
@@ -989,8 +1010,9 @@ export default async function DashboardPage({
           </Link>
 
           <Link
-            href={buildDashboardUrl("pending")}
-            className="metric-card metric-highlight metric-card-link"
+            href={buildPipelineUrl("pending")}
+            className={`metric-card metric-highlight metric-card-link ${pipelineFilter === "pending" ? "metric-card-active" : ""
+              }`}
           >
             <span>PENDING REVIEW</span>
             <strong>{pendingSubmissions}</strong>
@@ -998,8 +1020,9 @@ export default async function DashboardPage({
           </Link>
 
           <Link
-            href={buildDashboardUrl("approved")}
-            className="metric-card metric-card-link"
+            href={buildPipelineUrl("approved")}
+            className={`metric-card metric-card-link ${pipelineFilter === "approved" ? "metric-card-active" : ""
+              }`}
           >
             <span>APPROVED</span>
             <strong>{approvedSubmissions}</strong>
@@ -1007,14 +1030,93 @@ export default async function DashboardPage({
           </Link>
 
           <Link
-            href={buildDashboardUrl("rejected")}
-            className="metric-card metric-card-link"
+            href={buildPipelineUrl("rejected")}
+            className={`metric-card metric-card-link ${pipelineFilter === "rejected" ? "metric-card-active" : ""
+              }`}
           >
             <span>REJECTED</span>
             <strong>{rejectedSubmissions}</strong>
             <small>not accepted</small>
           </Link>
         </div>
+
+        {pipelineFilter && (
+          <div className="pipeline-drilldown">
+            <div className="pipeline-drilldown-head">
+              <div>
+                <span>PIPELINE DRILL-DOWN</span>
+                <h3>
+                  {pipelineLabel}{" "}
+                  <em>· {pipelineSubmissions.length}</em>
+                </h3>
+              </div>
+
+              <Link
+                href={buildPipelineUrl("")}
+                className="pipeline-drilldown-close"
+              >
+                Close ×
+              </Link>
+            </div>
+
+            {pipelineSubmissions.length === 0 ? (
+              <div className="analytics-empty pipeline-drilldown-empty">
+                <strong>No submissions match this pipeline stage.</strong>
+                <span>
+                  Try changing the dashboard filters or selecting another
+                  pipeline card.
+                </span>
+              </div>
+            ) : (
+              <div className="pipeline-film-list">
+                {pipelineSubmissions.map((submission) => {
+                  const film = submission.approved_film_id
+                    ? filmById.get(submission.approved_film_id)
+                    : undefined;
+
+                  return (
+                    <div
+                      className="pipeline-film-item"
+                      key={submission.id}
+                    >
+                      <div className="pipeline-film-main">
+                        <span>
+                          {film?.film_code || "SUBMISSION"}
+                        </span>
+
+                        <strong>{submission.title}</strong>
+
+                        <small>
+                          {submission.participant_name || "Participant"}
+                          {submission.organization
+                            ? ` · ${submission.organization}`
+                            : ""}
+                          {submission.language
+                            ? ` · ${submission.language}`
+                            : ""}
+                        </small>
+                      </div>
+
+                      <div className="pipeline-film-side">
+                        <span
+                          className={`status-pill status-${submission.status}`}
+                        >
+                          {submission.status.toUpperCase()}
+                        </span>
+
+                        <small>
+                          {new Date(
+                            submission.submitted_at
+                          ).toLocaleDateString()}
+                        </small>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </section>
 
       {/* -------------------------------------------------- */}
@@ -1527,6 +1629,119 @@ export default async function DashboardPage({
           box-sizing: border-box;
         }
 
+        .pipeline-drilldown {
+          margin-top: 14px;
+          padding: 22px;
+          border: 1px solid var(--glass-border);
+          border-radius: 18px;
+          background: rgba(255, 255, 255, .025);
+          overflow: hidden;
+        }
+
+        .pipeline-drilldown-head {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 20px;
+          margin-bottom: 14px;
+        }
+
+        .pipeline-drilldown-head > div > span {
+          display: block;
+          margin-bottom: 6px;
+          color: rgba(255,255,255,.38);
+          font-size: 8px;
+          font-weight: 600;
+          letter-spacing: .16em;
+        }
+
+        .pipeline-drilldown-head h3 {
+          margin: 0;
+          font-size: 18px;
+          letter-spacing: -.01em;
+        }
+
+        .pipeline-drilldown-head h3 em {
+          color: rgba(255,255,255,.42);
+          font-style: normal;
+          font-weight: 500;
+        }
+
+        .pipeline-drilldown-close {
+          color: rgba(255,255,255,.52);
+          font-size: 10px;
+          font-weight: 600;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: color .2s ease;
+        }
+
+        .pipeline-drilldown-close:hover {
+          color: #fff;
+        }
+
+        .pipeline-film-list {
+          display: grid;
+          gap: 8px;
+          max-height: 430px;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+
+        .pipeline-film-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 18px;
+          padding: 15px 16px;
+          border: 1px solid rgba(255,255,255,.06);
+          border-radius: 12px;
+          background: rgba(255,255,255,.018);
+        }
+
+        .pipeline-film-main {
+          min-width: 0;
+          display: grid;
+          gap: 3px;
+        }
+
+        .pipeline-film-main > span {
+          color: rgba(255,255,255,.34);
+          font-size: 8px;
+          font-weight: 600;
+          letter-spacing: .12em;
+        }
+
+        .pipeline-film-main strong {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          font-size: 13px;
+        }
+
+        .pipeline-film-main small,
+        .pipeline-film-side small {
+          color: rgba(255,255,255,.42);
+          font-size: 9px;
+        }
+
+        .pipeline-film-side {
+          flex: 0 0 auto;
+          display: flex;
+          align-items: flex-end;
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .pipeline-drilldown-empty {
+          margin-top: 0;
+        }
+
+        .metric-card-active {
+          border-color: rgba(243,150,31,.35);
+          background: rgba(243,150,31,.055);
+        }
+
         .metric-card-link {
           display: block;
           color: inherit;
@@ -1544,10 +1759,30 @@ export default async function DashboardPage({
           background: rgba(255,255,255,.045);
         }
 
+        .metric-card-active:hover {
+          border-color: rgba(243,150,31,.45);
+          background: rgba(243,150,31,.075);
+        }
+
         .metric-card-link:focus-visible {
           outline: 2px solid rgba(243,150,31,.7);
           outline-offset: 3px;
         }
+
+        @media (max-width: 700px) {
+          .pipeline-film-item {
+            align-items: flex-start;
+          }
+
+          .pipeline-film-side {
+            align-items: flex-end;
+          }
+
+          .pipeline-drilldown {
+            padding: 16px;
+          }
+        }
+
 
         .metric-card > span,
         .score-card > span {
