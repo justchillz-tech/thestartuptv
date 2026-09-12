@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="Become a referrer for the Startup TV Film Festival and invite filmmakers to submit their stories.">
+
+    <title>Refer a Filmmaker | Startup TV Film Festival</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="/style.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GYHTQ2N0FK"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+
+        function gtag() {
+            dataLayer.push(arguments);
+        }
+
+        gtag('js', new Date());
+        gtag('config', 'G-GYHTQ2N0FK');
+    </script>
+</head>
+
+<body>
+
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="site-header">
+
+        <a class="brand" href="/" aria-label="Startup TV Film Festival home">
+            <img src="../assets/logo.png" alt="Startup TV">
+            <span class="brand-divider"></span>
+            <span class="brand-label">FILM FESTIVAL</span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Primary navigation">
+            <a href="/">Festival</a>
+            <a href="/#eligibility">Eligibility</a>
+            <a href="/#process">How It Works</a>
+            <a href="/#faq">FAQ</a>
+        </nav>
+
+        <a class="nav-cta" href="/#submit">
+            Submit Your Film <span>↗</span>
+        </a>
+
+    </header>
+
+
+    <main>
+
+        <section class="submission-section section refer-page">
+
+            <div class="submission-glow"></div>
+
+            <div class="submission-header">
+
+                <div class="section-kicker">
+                    REFER A FILMMAKER
+                </div>
+
+                <h1>
+                    Bring a story<br>
+                    to the <span>screen.</span>
+                </h1>
+
+                <p>
+                    Know a filmmaker with something worth saying?
+                    Become a Startup TV Film Festival referrer and invite
+                    them to submit their film.
+                </p>
+
+            </div>
+
+
+            <div class="refer-card">
+
+                <!-- REGISTRATION FORM -->
+
+                <form id="referrerForm">
+
+                    <div class="form-section">
+
+                        <div class="form-section-heading">
+                            <span>01</span>
+
+                            <div>
+                                <h3>Become a referrer</h3>
+                                <p>Tell us a little about yourself.</p>
+                            </div>
+                        </div>
+
+
+                        <div class="form-grid">
+
+                            <div class="form-field form-field-full">
+
+                                <label for="referrer_name">
+                                    Your name <span>*</span>
+                                </label>
+
+                                <input type="text" id="referrer_name" name="name" placeholder="Enter your full name"
+                                    autocomplete="name" required>
+
+                            </div>
+
+
+                            <div class="form-field">
+
+                                <label for="referrer_email">
+                                    Email address <span>*</span>
+                                </label>
+
+                                <input type="email" id="referrer_email" name="email" placeholder="you@example.com"
+                                    autocomplete="email" required>
+
+                            </div>
+
+
+                            <div class="form-field">
+
+                                <label for="referrer_contact">
+                                    Contact number
+                                </label>
+
+                                <input type="tel" id="referrer_contact" name="contact_number"
+                                    placeholder="+91 XXXXX XXXXX" autocomplete="tel">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="submission-actions">
+
+                        <label class="terms-checkbox">
+
+                            <input type="checkbox" id="termsAgreement" name="terms_agreement" required>
+
+                            <span class="terms-checkmark"></span>
+
+                            <span class="terms-checkbox-text">
+                                I have read and agree to the
+                                <a href="#referralTerms">Terms & Conditions</a>.
+                            </span>
+
+                        </label>
+
+
+                        <button type="submit" id="referrerSubmitButton" class="button button-primary button-large">
+
+                            Get My Referral Link <span>↗</span>
+
+                        </button>
+
+
+                        <p class="submission-note">
+                            Your unique referral link will be generated after registration.
+                        </p>
+
+                    </div>
+
+                    <p id="referrerStatus" class="submission-status" aria-live="polite">
+                    </p>
+
+                </form>
+
+
+                <!-- SUCCESS STATE -->
+
+                <div id="referrerSuccess" class="referrer-success" hidden>
+
+                    <div class="success-icon">
+                        ✓
+                    </div>
+
+                    <div class="section-kicker">
+                        YOU'RE IN
+                    </div>
+
+                    <h2>
+                        Your referral link<br>
+                        is <span>ready.</span>
+                    </h2>
+
+                    <p>
+                        Share this link with filmmakers you know.
+                        When they submit a film using your referral code,
+                        the referral will be recorded.
+                    </p>
+
+
+                    <div class="referral-result">
+
+                        <div class="referral-code-label">
+                            YOUR REFERRAL CODE
+                        </div>
+
+                        <div id="referralCode" class="referral-code">
+                            —
+                        </div>
+
+
+                        <div class="referral-link-label">
+                            YOUR REFERRAL LINK
+                        </div>
+
+                        <div class="referral-link-row">
+
+                            <input type="text" id="referralUrl" readonly>
+
+                            <button type="button" id="copyReferralButton" class="button button-ghost">
+
+                                Copy
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="referral-actions">
+
+                        <button type="button" id="showQrButton" class="button button-primary">
+
+                            Show QR <span>▣</span>
+
+                        </button>
+
+                        <button type="button" id="shareReferralButton" class="button button-ghost">
+
+                            Share <span>↗</span>
+
+                        </button>
+
+                        <a id="openReferralButton" class="button button-ghost" href="#" target="_blank" rel="noopener">
+
+                            Open Link ↗
+
+                        </a>
+
+                    </div>
+
+
+                    <div id="qrContainer" class="qr-container" hidden>
+
+                        <div class="qr-label">
+                            SCAN TO VISIT THE FESTIVAL
+                        </div>
+
+                        <div class="qr-code-wrapper">
+
+                            <img id="qrCode" src="" alt="Referral QR code">
+
+                        </div>
+
+                        <p>
+                            Share this QR code with filmmakers.
+                        </p>
+
+                    </div>
+
+                </div>
+                <div id="referralTerms" class="referral-terms-simple">
+
+                    <div class="referral-terms-title">
+                        Terms & Conditions
+                    </div>
+
+                    <div class="referral-terms-content">
+
+                        <p>
+                            <strong>Campaign Period:</strong>
+                            16 September 2026 to 23 September 2026, inclusive.
+                        </p>
+
+                        <p>
+                            The campaign is open to current Startup Park team members
+                            who register through the designated referral flow.
+                        </p>
+
+                        <p>
+                            Each registered referrer receives a personal referral code,
+                            link and QR code which may be shared with multiple filmmakers
+                            or potential participants.
+                        </p>
+
+                        <p>
+                            Each valid film submission counts as one submission toward
+                            the referrer's total. Multiple valid film submissions by the
+                            same filmmaker will all count toward the submission total,
+                            but the filmmaker will count as one unique referred person.
+                        </p>
+
+                        <p>
+                            A minimum of <strong>3 valid referred film submissions</strong>
+                            is required to qualify for the Referral Champion Prize.
+                        </p>
+
+                        <p>
+                            Duplicate, incomplete, cancelled, fraudulent or otherwise
+                            invalid submissions will not count. Self-referrals are not
+                            permitted.
+                        </p>
+
+                        <p>
+                            A filmmaker may be attributed to only one referrer. Where
+                            multiple referral claims exist, the earliest verifiable
+                            referral attribution recorded by the system will be considered
+                            valid.
+                        </p>
+
+                        <p>
+                            The Startup Park team member with the highest number of valid
+                            referred film submissions wins the <strong>₹3,000 Referral
+                                Champion Prize.</strong>
+                        </p>
+
+                        <p>
+                            In the event of a tie, the referrer with more unique referred
+                            filmmakers wins. If both totals are equal, the qualifying
+                            referral/submission activity recorded first in the system
+                            will determine the winner.
+                        </p>
+
+                        <p>
+                            The organizers reserve the right to verify submissions,
+                            referral attribution and eligibility and to exclude activity
+                            that violates these terms or attempts to manipulate the
+                            referral system.
+                        </p>
+
+                        <p>
+                            The organizers' decision regarding eligibility, submission
+                            validity, referral attribution and campaign results will be
+                            final.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="site-footer">
+
+        <div class="footer-inner">
+
+            <a class="brand" href="/" aria-label="Startup TV Film Festival home">
+                <img src="../assets/logo.png" alt="Startup TV">
+                <span class="brand-divider"></span>
+                <span class="brand-label">FILM FESTIVAL</span>
+            </a>
+
+            <p>
+                © Startup TV Film Festival
+            </p>
+
+        </div>
+
+    </footer>
+
+
+    <script src="/refer.js"></script>
+
+</body>
+
+</html>
