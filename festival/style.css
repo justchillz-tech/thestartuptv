@@ -1630,178 +1630,112 @@ details p {
 }
 
 /* =========================================================
-   REFERRAL CAMPAIGN TERMS
+   REFERRAL TERMS — SIMPLE FORM STYLE
    ========================================================= */
 
-.referral-terms {
+.terms-checkbox {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+
+  max-width: 700px;
+  margin: 0 auto 22px;
+
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+  text-align: left;
+}
+
+.terms-checkbox input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.terms-checkmark {
   position: relative;
-  max-width: 1180px;
-  margin: 0 auto;
-  padding-top: 100px;
-  padding-bottom: 110px;
+  flex: 0 0 18px;
+
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+
+  background: rgba(255, 255, 255, 0.035);
+
+  transition: all 0.2s ease;
 }
 
-.referral-terms-header {
-  max-width: 850px;
-  margin-bottom: 70px;
-}
+.terms-checkbox input:checked+.terms-checkmark {
+  border-color: transparent;
 
-.referral-terms-header h2 {
-  margin: 12px 0 20px;
-
-  font-family: 'Poppins', sans-serif;
-  font-size: clamp(3rem, 5vw, 5.5rem);
-  line-height: 0.98;
-  letter-spacing: -0.055em;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.referral-terms-header h2 span {
   background: linear-gradient(135deg,
       var(--accent1),
       var(--accent2),
-      var(--accent3),
-      var(--accent4));
-
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.referral-terms-header p {
-  max-width: 720px;
-  margin: 0;
-
-  color: var(--text-secondary);
-  font-size: 16px;
-  line-height: 1.7;
-}
-
-
-/* Terms content */
-
-.referral-terms-content {
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-}
-
-.terms-block {
-  display: grid;
-  grid-template-columns: 80px minmax(0, 1fr);
-  gap: 35px;
-
-  padding: 42px 0;
-
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.terms-number {
-  padding-top: 5px;
-
-  color: var(--accent1);
-  font-family: 'Poppins', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.terms-body {
-  max-width: 850px;
-}
-
-.terms-body h3 {
-  margin: 0 0 18px;
-
-  color: #ffffff;
-  font-family: 'Poppins', sans-serif;
-  font-size: 25px;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.terms-body p {
-  margin: 0 0 16px;
-
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.75;
-}
-
-.terms-body p:last-child {
-  margin-bottom: 0;
-}
-
-.terms-body strong {
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.terms-body ul {
-  margin: 0;
-  padding: 0;
-
-  list-style: none;
-}
-
-.terms-body li {
-  position: relative;
-
-  margin-bottom: 13px;
-  padding-left: 22px;
-
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.7;
-}
-
-.terms-body li:last-child {
-  margin-bottom: 0;
-}
-
-.terms-body li::before {
-  content: "";
-  position: absolute;
-  top: 0.7em;
-  left: 0;
-
-  width: 6px;
-  height: 6px;
-
-  border-radius: 50%;
-
-  background: linear-gradient(135deg,
-      var(--accent1),
       var(--accent3));
 }
 
+.terms-checkbox input:checked+.terms-checkmark::after {
+  content: "✓";
 
-/* Example box */
+  position: absolute;
+  inset: 0;
 
-.terms-example {
-  margin: 28px 0;
-  padding: 24px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-left: 2px solid var(--accent2);
-  border-radius: 12px;
-}
-
-.terms-example-label {
-  margin-bottom: 12px;
-
-  color: var(--accent1);
-  font-size: 10px;
+  color: #ffffff;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.16em;
 }
 
-.terms-example p {
-  margin-bottom: 12px;
+.terms-checkbox-text a {
+  color: #ffffff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.terms-example p:last-child {
-  margin-bottom: 0;
+.terms-checkbox-text a:hover {
+  color: var(--accent1);
+}
+
+
+/* Simple T&C block */
+
+.referral-terms-simple {
+  max-width: 850px;
+  margin: 55px auto 0;
+  padding-top: 30px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.referral-terms-title {
+  margin-bottom: 24px;
+
+  color: #ffffff;
+
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.referral-terms-content p {
+  margin: 0 0 14px;
+
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.referral-terms-content strong {
+  color: #ffffff;
 }
 
 
@@ -1809,44 +1743,16 @@ details p {
 
 @media (max-width: 768px) {
 
-  .referral-terms {
-    padding-top: 70px;
-    padding-bottom: 70px;
+  .terms-checkbox {
+    width: 100%;
+    font-size: 12px;
   }
 
-  .referral-terms-header {
-    margin-bottom: 45px;
+  .referral-terms-simple {
+    margin-top: 45px;
   }
 
-  .referral-terms-header h2 {
-    font-size: clamp(2.8rem, 12vw, 4rem);
-  }
-
-  .referral-terms-header p {
-    font-size: 14px;
-  }
-
-  .terms-block {
-    grid-template-columns: 1fr;
-    gap: 10px;
-
-    padding: 32px 0;
-  }
-
-  .terms-number {
-    padding-top: 0;
-  }
-
-  .terms-body h3 {
-    font-size: 21px;
-  }
-
-  .terms-body p,
-  .terms-body li {
-    font-size: 14px;
-  }
-
-  .terms-example {
-    padding: 20px;
+  .referral-terms-content p {
+    font-size: 13px;
   }
 }
