@@ -183,6 +183,8 @@ export async function POST(request: Request) {
           submission.language || "Not provided",
         video_url:
           submission.film_url || null,
+        drive_url:
+          submission.film_url || null,
         drive_file_id: null,
         status: "active",
       })

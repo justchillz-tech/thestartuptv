@@ -59,6 +59,11 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+  const { data: submission } = await supabase
+    .from("film_submissions")
+    .select("approved_film_id, approval_exception, film_url")
+    .eq("approved_film_id", filmId)
+    .maybeSingle();
 
   /*
    * Normal films must use a matching Google Drive file ID
@@ -70,7 +75,15 @@ export async function POST(request: Request) {
    */
   let validFilmUrl = false;
 
-  if (driveFileId) {
+  if (submission?.approval_exception) {
+    const storedExceptionUrl = String(
+      submission.film_url ?? film.video_url ?? film.drive_url ?? ""
+    ).trim();
+
+    validFilmUrl =
+      Boolean(storedExceptionUrl) &&
+      filmUrl === storedExceptionUrl;
+  } else if (driveFileId) {
     validFilmUrl = film.drive_file_id === driveFileId;
   } else if (youtubeVideoId) {
     const assignedYouTubeId = extractYouTubeVideoId(
@@ -78,14 +91,6 @@ export async function POST(request: Request) {
     );
 
     validFilmUrl = assignedYouTubeId === youtubeVideoId;
-  } else {
-    const storedFilmUrl = String(
-      film.video_url ?? film.drive_url ?? ""
-    ).trim();
-
-    validFilmUrl =
-      Boolean(storedFilmUrl) &&
-      filmUrl === storedFilmUrl;
   }
 
   if (!validFilmUrl) {
