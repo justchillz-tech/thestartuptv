@@ -79,8 +79,6 @@ export async function POST(request: Request) {
 
   let validFilmUrl = false;
 
-  let validFilmUrl = false;
-
   if (submission?.approval_exception) {
     const storedExceptionUrl = String(
       submission.film_url ?? film.video_url ?? film.drive_url ?? ""
