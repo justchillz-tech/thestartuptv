@@ -22,5 +22,11 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
     "typescript": "^5.7.0"
-  }
+  },
+   "browserslist": [
+    "chrome 111",
+    "edge 111",
+    "firefox 111",
+    "safari 15.6"
+  ]
 }
