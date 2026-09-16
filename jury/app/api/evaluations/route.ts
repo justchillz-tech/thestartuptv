@@ -34,15 +34,18 @@ export async function POST(request: Request) {
   const driveFileId = extractGoogleDriveFileId(filmUrl);
   const youtubeVideoId = extractYouTubeVideoId(filmUrl);
 
-  if (!filmId || (!driveFileId && !youtubeVideoId)) {
+  if (!filmId) {
     return NextResponse.json(
-      {
-        error:
-          "Please provide a valid Google Drive or YouTube Film URL.",
-      },
+      { error: "Film ID is required." },
       { status: 400 }
     );
   }
+
+  const { data: submission } = await supabase
+    .from("film_submissions")
+    .select("approved_film_id, approval_exception, film_url")
+    .eq("approved_film_id", filmId)
+    .maybeSingle();
 
   for (const [key, max] of Object.entries(limits) as [ScoreKey, number][]) {
     const value = scores?.[key];
@@ -53,7 +56,9 @@ export async function POST(request: Request) {
 
   const { data: assignment } = await supabase
     .from("assignments")
-    .select("id, status, films(id, drive_file_id, video_url)")
+    .select(
+      "id, status, films(id, drive_file_id, drive_url, video_url)"
+    )
     .eq("jury_id", userId)
     .eq("film_id", filmId)
     .single();
@@ -74,7 +79,17 @@ export async function POST(request: Request) {
 
   let validFilmUrl = false;
 
-  if (driveFileId) {
+  let validFilmUrl = false;
+
+  if (submission?.approval_exception) {
+    const storedExceptionUrl = String(
+      submission.film_url ?? film.video_url ?? film.drive_url ?? ""
+    ).trim();
+
+    validFilmUrl =
+      Boolean(storedExceptionUrl) &&
+      filmUrl === storedExceptionUrl;
+  } else if (driveFileId) {
     validFilmUrl = film.drive_file_id === driveFileId;
   } else if (youtubeVideoId) {
     const assignedYouTubeId = extractYouTubeVideoId(
