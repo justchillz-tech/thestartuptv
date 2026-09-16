@@ -163,6 +163,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "browserslist": [
+    "chrome 111",
+    "edge 111",
+    "firefox 111",
+    "safari 15.6"
+  ],
   "keywords": [],
   "author": "",
   "license": "ISC",
