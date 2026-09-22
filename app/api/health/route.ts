@@ -1,0 +1,1 @@
+import{NextResponse}from"next/server";import{isSupabaseConfigured}from"@/lib/config";export async function GET(){return NextResponse.json({ok:true,service:"utsavaloka",databaseConfigured:isSupabaseConfigured(),timestamp:new Date().toISOString()})}

@@ -1,0 +1,2 @@
+import{AppShell}from"@/components/app-shell";import{createClient}from"@/lib/supabase/server";import{isSupabaseConfigured}from"@/lib/config";
+export default async function DashboardLayout({children}:{children:React.ReactNode}){let userName="Institution Admin";if(isSupabaseConfigured()){const{data}=await(await createClient()).auth.getUser();if(data.user)userName=data.user.user_metadata?.name||data.user.email?.split("@")[0]||userName}return <AppShell userName={userName}>{children}</AppShell>}

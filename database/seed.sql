@@ -1,0 +1,6 @@
+insert into public.institutions(id,name,code,email) values('11111111-1111-1111-1111-111111111111','Utsavaloka Demo Institution','DEMO','admin@example.edu') on conflict(id) do nothing;
+insert into public.departments(institution_id,name,code) values('11111111-1111-1111-1111-111111111111','Computer Applications','BCA') on conflict(institution_id,code) do nothing;
+insert into public.courses(institution_id,code,name,credits) values('11111111-1111-1111-1111-111111111111','BCA-501','Data Structures',4),('11111111-1111-1111-1111-111111111111','BCA-502','Database Systems',4) on conflict(institution_id,code) do nothing;
+insert into public.clubs(institution_id,name,slug,description) values('11111111-1111-1111-1111-111111111111','Innovation & Entrepreneurship Club','innovation','Student-led entrepreneurship and innovation community.'),('11111111-1111-1111-1111-111111111111','Design Society','design','Design, product and creative technology community.') on conflict(institution_id,slug) do nothing;
+-- After creating an Auth user, run:
+-- update public.profiles set institution_id='11111111-1111-1111-1111-111111111111',role='institution_admin' where id='<AUTH_USER_UUID>';
