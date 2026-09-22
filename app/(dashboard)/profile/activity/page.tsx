@@ -1,0 +1,1 @@
+import{StudentProfilePanel}from"@/components/student-profile-panel";export default function Page(){return <><div className="page-heading"><div><p className="kicker">Student Profile / Activity</p><h1>Activity Record</h1><p className="subtle">A unified history of verified campus participation.</p></div></div><StudentProfilePanel kind="activity"/></>

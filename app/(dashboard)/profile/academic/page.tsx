@@ -1,0 +1,1 @@
+import{StudentProfilePanel}from"@/components/student-profile-panel";export default function Page(){return <><div className="page-heading"><div><p className="kicker">Student Profile / Academic</p><h1>Academic Record</h1><p className="subtle">Your academic record assembled from live course, marks and attendance data.</p></div></div><StudentProfilePanel kind="academic"/></>}

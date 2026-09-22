@@ -1,34 +1,74 @@
-# Utsavaloka v2
-A real institutional platform rebuild using Next.js 16, Supabase PostgreSQL, Supabase Auth and Row Level Security.
+# Utsavaloka v2 — full module build
 
-## Current foundation
-- Real Next.js App Router application
-- Supabase browser/server clients with SSR cookie sessions
-- Next.js 16 Proxy for session refresh and protected routes
-- Institution-scoped PostgreSQL schema
-- Role-aware RLS policies
-- Live dashboard, students and clubs queries
-- Event GET/POST API and database-backed event creation
-- Login screen and health endpoint
-- Explicit empty/setup states instead of fake data
+Utsavaloka is being built as a real institutional campus operating system, not a static dashboard.
 
-## Setup
-1. Create a Supabase project.
-2. Copy .env.example to .env.local.
-3. Run database/schema.sql in Supabase SQL Editor.
-4. Optionally run database/seed.sql.
-5. Create the first user in Supabase Authentication.
-6. Link that user's UUID to the institution using the SQL comment in database/seed.sql.
-7. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to Vercel. Keep SUPABASE_SECRET_KEY server-only.
+## Build scope
 
-## Build sequence
-1. Institution/user administration
-2. Event registration
-3. QR attendance
-4. Participation automation
-5. Certificate generation and verification
-6. Academic attendance, marks, timetable and exams
-7. Communication
-8. Reports, audit logs and exports
+### Club management / Student life
+- Students
+- Clubs
+- Club membership data model
+- Events
+- Registrations
+- QR event attendance
+- Participation automation
+- Certificates
+- Activity records
+- Achievements
 
-No secrets belong in GitHub. Publishable keys are for browser use with RLS; secret keys are backend-only.
+### Academics
+- Academic attendance sessions
+- Marks
+- Courses
+- Timetable
+- Exams
+- Student academic record
+
+### Communication
+- Notices
+- Notifications
+- Circulars
+- Deadlines
+
+### Administration
+- Dashboard
+- Live operational reports
+- Audit logs
+- Institution/user roles
+- Settings
+
+## Architecture
+- Next.js 16 App Router
+- React 19
+- TypeScript
+- Supabase PostgreSQL
+- Supabase Auth
+- PostgreSQL Row Level Security
+- Next.js Route Handlers
+- Client UI only calls authenticated server endpoints
+- QR attendance uses short-lived hashed session tokens
+
+The application is structured around real records and relationships. Pages do not invent students, events, marks or attendance just to make the interface look populated.
+
+## Connection policy
+**Do not configure deployment or production credentials in this branch.**
+The application contains the connection layer, but the actual Supabase project/environment connection is deliberately the final step after the UI, API, schema and workflows have been verified.
+No Vercel deployment has been performed by this build.
+
+## Final connection steps
+1. Create/choose the Supabase project.
+2. Run database/schema.sql.
+3. Create the first Auth user.
+4. Link the user to an institution/profile.
+5. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY to the local environment.
+6. Verify login, RLS, CRUD, QR attendance and reports locally.
+7. Only after verification, configure the same variables in Vercel manually.
+Never commit Supabase secret keys or production credentials.
+
+## Important workflow
+Event → Registration → QR Attendance → Participation → Certificate → Report
+A verified event attendance insert automatically creates a participation record and an activity record through the database trigger.
+
+## Current Git branch
+`Uloka-v2`
+This branch is the verification build. The older `Uloka` prototype is preserved separately.

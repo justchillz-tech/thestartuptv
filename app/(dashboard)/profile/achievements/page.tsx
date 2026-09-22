@@ -1,0 +1,1 @@
+import{StudentProfilePanel}from"@/components/student-profile-panel";export default function Page(){return <><div className="page-heading"><div><p className="kicker">Student Profile / Achievements</p><h1>Achievements</h1><p className="subtle">Academic and student-life achievements linked to your profile.</p></div></div><StudentProfilePanel kind="achievements"/></>}
