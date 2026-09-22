@@ -1,306 +1,142 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Startup TV</title>
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
-  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
-
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="style.css">
-  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet">
-
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-    }
-
-    .brand-gradient {
-      background: linear-gradient(135deg, var(--accent1), var(--accent2), var(--accent3), var(--accent4));
-    }
-
-    .hero-gradient {
-      background: linear-gradient(-45deg, var(--accent1), var(--accent2), var(--accent3), var(--accent4));
-      background-size: 400% 400%;
-      animation: gradientMove 12s ease infinite;
-    }
-
-    @keyframes gradientMove {
-      0% {
-        background-position: 0% 50%;
-      }
-
-      50% {
-        background-position: 100% 50%;
-      }
-
-      100% {
-        background-position: 0% 50%;
-      }
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent1), var(--accent3));
-      border: none;
-      color: #fff;
-      padding: 14px 28px;
-      border-radius: 30px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      display: inline-block;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    }
-
-    .fancy-card {
-      transition: all 0.35s ease;
-      border-radius: 16px;
-    }
-
-    .fancy-card:hover {
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
-    }
-
-    .gradient-text {
-      background: linear-gradient(135deg, var(--accent2), var(--accent4));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .glow {
-      box-shadow: 0 0 30px rgba(203, 29, 127, 0.4);
-    }
-
-    .bg-shape {
-      position: absolute;
-      width: 300px;
-      height: 300px;
-      background: radial-gradient(circle, var(--accent3), transparent);
-      filter: blur(80px);
-      animation: float 8s ease-in-out infinite;
-      pointer-events: none;
-    }
-
-    @keyframes float {
-
-      0%,
-      100% {
-        transform: translateY(0);
-      }
-
-      50% {
-        transform: translateY(-40px);
-      }
-    }
-
-    .navbar {
-      backdrop-filter: blur(12px);
-      background: rgba(255, 255, 255, 0.05);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    @media (max-width: 768px) {
-      .hero-gradient {
-        animation-duration: 18s;
-      }
-
-      .bg-shape {
-        width: 180px;
-        height: 180px;
-        filter: blur(48px);
-        opacity: 0.45;
-      }
-
-      .fancy-card:hover {
-        transform: translateY(-4px) scale(1.01);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
-      }
-
-      .btn-primary:hover {
-        transform: translateY(-1px);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-
-      .hero-gradient,
-      .bg-shape {
-        animation: none;
-      }
-
-      .fancy-card,
-      .btn-primary {
-        transition: none;
-      }
-
-      .fancy-card:hover,
-      .btn-primary:hover {
-        transform: none;
-        box-shadow: none;
-      }
-    }
-  </style>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-WVQ1KTKV6Q"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-
-    gtag('config', 'G-WVQ1KTKV6Q');
-  </script>
+  <meta name="theme-color" content="#0b0b0b">
+  <title>Utsavaloka — Club Management Hub</title>
+  <meta name="description" content="Utsavaloka brings college event registration, QR attendance, participation records and reporting into one simple platform.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
 </head>
-
-<body class="bg-gray-900 text-white">
-
-  <!-- Navbar -->
-  <header class="navbar">
-    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
-      <img src="/assets/logo.png" alt="Startup TV Logo" class="w-40 h-15 object-contain">
-
-      <ul class="hidden md:flex space-x-8 font-medium">
-        <li><a href="index.html" class="hover:text-[var(--accent1)] transition">Home</a></li>
-        <li><a href="about.html" class="hover:text-[var(--accent1)] transition">About</a></li>
-        <li><a href="shows.html" class="hover:text-[var(--accent1)] transition">Shows</a></li>
-        <li><a href="faq.html" class="hover:text-[var(--accent1)] transition">FAQ</a></li>
-        <li><a href="contact.html" class="hover:text-[var(--accent1)] transition">Contact</a></li>
-        <li><a href="blog.html" class="hover:text-[var(--accent1)] transition">Blog</a></li>
-      </ul>
-
-      <a href="#"
-        class="hidden md:inline-block px-5 py-2 bg-gradient-to-r from-[var(--accent1)] via-[var(--accent2)] to-[var(--accent3)] rounded-lg font-semibold text-gray-900 hover:scale-105 transition-transform">Watch
-        Now</a>
-    </div>
-  </header>
-
-  <!-- Hero Section -->
-  <section class="hero-gradient relative h-screen flex items-center justify-center text-center bg-cover bg-center"
-    style="background-image: url('/assets/hero.JPG');">
-    <div class="bg-shape top-10 left-10"></div>
-    <div class="bg-shape bottom-10 right-10"></div>
-    <div class="absolute inset-0 bg-black/60"></div>
-    <div class="relative max-w-4xl px-6">
-      <h1 class="text-4xl md:text-6xl font-bold mb-6">World’s 1st Business Entertainment Platform</h1>
-      <h2 class="text-3xl md:text-4xl font-bold mb-6 gradient-text"></h2>Exclusively made for startups, entrepreneurs and dreamers</h2>
-      <a href="#"
-        class="inline-block px-8 py-4 bg-gradient-to-r from-[var(--accent1)] via-[var(--accent2)] to-[var(--accent3)] rounded-xl font-bold text-gray-900 text-lg animate-bounce hover:scale-105 transition-transform">
-        Watch Now
-      </a>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about" data-aos="fade-up" class="max-w-7xl mx-auto px-6 py-24 md:py-32" data-aos="fade-up">
-    <h2 class="text-3xl md:text-4xl font-bold mb-6 gradient-text">About Startup TV</h2>
-    <p class="text-gray-300 text-lg md:text-xl leading-relaxed">
-      Startup TV is a platform purely crafted for the intrepid spirit of startups, entrepreneurship, and thrilling
-      business innovation. Startup TV is on a mission to ignite the spark of entrepreneurship within everyone.
-    </p>
-  </section>
-
-  <!-- Mission & Vision -->
-  <section id="mission-vision" class="bg-gray-800 py-24">
-    <div class="max-w-7xl mx-auto px-6 md:flex md:space-x-12">
-      <div class="md:w-1/2 mb-12 md:mb-0 fancy-card p-6 bg-gray-900/50">
-        <h3 class="text-2xl font-semibold gradient-text mb-4">Mission</h3>
-        <p class="text-gray-300 leading-relaxed">
-          Startup TV aims to create the world's first dedicated OTT ecosystem that empowers, educates, and entertains
-          entrepreneurs.
-        </p>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <img src="/assets/utsavaloka-logo.svg" alt="Utsavaloka">
       </div>
-      <div class="md:w-1/2 fancy-card p-6 bg-gray-900/50">
-        <h3 class="text-2xl font-semibold gradient-text mb-4">Vision</h3>
-        <p class="text-gray-300 leading-relaxed">
-          To inspire, guide, and support entrepreneurial aspirations worldwide.
-        </p>
+      <div class="workspace">
+        <span class="workspace-label">WORKSPACE</span>
+        <button class="campus-switcher"><span class="campus-dot"></span> St. Joseph's College <span class="chevron">⌄</span></button>
       </div>
-    </div>
-  </section>
+      <nav class="nav">
+        <button class="nav-item active" data-page="overview"><span class="nav-icon">⌂</span> Overview</button>
+        <button class="nav-item" data-page="events"><span class="nav-icon">◫</span> Events <span class="nav-badge">8</span></button>
+        <button class="nav-item" data-page="attendance"><span class="nav-icon">✓</span> Attendance</button>
+        <button class="nav-item" data-page="students"><span class="nav-icon">◎</span> Students</button>
+        <button class="nav-item" data-page="certificates"><span class="nav-icon">◇</span> Certificates</button>
+        <button class="nav-item" data-page="reports"><span class="nav-icon">▥</span> Reports</button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="upgrade-card">
+          <div class="upgrade-icon">✦</div>
+          <strong>Build your campus</strong>
+          <p>Academic, notices and student profiles are coming next.</p>
+          <button>Explore roadmap →</button>
+        </div>
+        <button class="nav-item muted"><span class="nav-icon">⚙</span> Settings</button>
+        <div class="user-mini"><div class="avatar">AM</div><div><strong>Ananya Menon</strong><span>Club Secretary</span></div><span class="dots">•••</span></div>
+      </div>
+    </aside>
 
-  <!-- Shows Section -->
-  <section id="shows" class="max-w-7xl mx-auto px-6 py-24">
-    <h2 class="text-3xl md:text-4xl font-bold mb-6 gradient-text">Shows</h2>
-    <div class="grid md:grid-cols-3 lg:grid-cols-5 gap-8">
-      <div
-      class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
-      <img src="/assets/show1.jpg" alt="Apex Club" class="w-full h-48 object-cover">
-      <div class="p-4">
-        <h3 class="text-xl font-semibold mb-2">Apex Club</h3>
-        <p class="text-gray-300 text-sm mb-4">Big minds. Bigger conversations. Where industry leaders and investors
-          debate trends, ideas, and what's next in business.</p>
-        <a href="#" class="btn-primary">Watch Now</a>
-      </div>
-    </div>
-    <div
-      class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
-      <img src="/assets/show2.jpg" alt="Chef O’Clock" class="w-full h-48 object-cover">
-      <div class="p-4">
-        <h3 class="text-xl font-semibold mb-2">Chef O'Clock</h3>
-        <p class="text-gray-300 text-sm mb-4">Food meets business. Discover how chefs and foodpreneurs turn passion
-          into profit.</p>
-        <a href="#" class="btn-primary">Watch Now</a>
-      </div>
-    </div>
-    <div
-      class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
-      <img src="/assets/show3.jpg" alt="Clash Point" class="w-full h-48 object-cover">
-      <div class="p-4">
-        <h3 class="text-xl font-semibold mb-2">Clash Point</h3>
-        <p class="text-gray-300 text-sm mb-4">Bold debates. Big ideas. Experts and entrepreneurs clash over the trends
-          shaping the business future.</p>
-        <a href="#" class="btn-primary">Watch Now</a>
-      </div>
-    </div>
-    <div
-      class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
-      <img src="/assets/show4.jpg" alt="Deal Room" class="w-full h-48 object-cover">
-      <div class="p-4">
-        <h3 class="text-xl font-semibold mb-2">Deal Room</h3>
-        <p class="text-gray-300 text-sm mb-4">The funding zone! Where startups pitch, investors challenge, and real
-          deals unfold.</p>
-        <a href="#" class="btn-primary">Watch Now</a>
-      </div>
-    </div>
-    <div
-      class="bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:scale-105 transition-transform animate-fade-in opacity-100 transition duration-1000">
-      <img src="/assets/show5.jpg" alt="POV" class="w-full h-48 object-cover">
-      <div class="p-4">
-        <h3 class="text-xl font-semibold mb-2">POV</h3>
-        <p class="text-gray-300 text-sm mb-4">All about movies - box-office trends, OTT battles, and business
-          insights.</p>
-        <a href="#" class="btn-primary">Watch Now</a>
-      </div>
-    </div>
-    </div>
-  </section>
+    <main class="main">
+      <header class="topbar">
+        <button class="mobile-menu" id="menuBtn">☰</button>
+        <div class="crumb"><span>Utsavaloka</span><b>/</b><strong id="pageTitle">Overview</strong></div>
+        <div class="top-actions">
+          <button class="icon-btn" title="Notifications">♢<span class="notification-dot"></span></button>
+          <button class="help-btn">?</button>
+          <button class="profile-btn"><span class="avatar small">AM</span><span>Ananya</span><span>⌄</span></button>
+        </div>
+      </header>
 
-  <!-- Footer -->
-  <footer class="bg-gray-900 py-12 mt-12 text-center text-gray-400">
-    <p>&copy; 2025 Startup TV. All rights reserved.</p>
-  </footer>
-  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+      <div class="content">
+        <section class="page active" id="overview">
+          <div class="welcome">
+            <div>
+              <p class="eyebrow">TUESDAY · 22 SEPTEMBER 2026</p>
+              <h1>Good morning, Ananya <span>✦</span></h1>
+              <p class="subhead">Here's what is happening across your club today.</p>
+            </div>
+            <button class="primary" id="createEventBtn">＋ Create event</button>
+          </div>
 
-  <script>
-    AOS.init({
-      duration: 1000,
-      once: true
-    });
-  </script>
+          <div class="stats-grid">
+            <article class="stat-card"><div class="stat-top"><span>Total events</span><span class="stat-icon gold">◫</span></div><strong>48</strong><div class="trend up">↑ 12% <span>vs last semester</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span>Registrations</span><span class="stat-icon">◎</span></div><strong>2,846</strong><div class="trend up">↑ 18% <span>vs last semester</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span>Attendance rate</span><span class="stat-icon">✓</span></div><strong>87.4%</strong><div class="trend up">↑ 4.2% <span>vs last semester</span></div></article>
+            <article class="stat-card"><div class="stat-top"><span>Active students</span><span class="stat-icon">✦</span></div><strong>1,204</strong><div class="trend neutral">→ 6% <span>new this month</span></div></article>
+          </div>
 
+          <div class="dashboard-grid">
+            <section class="panel events-panel">
+              <div class="panel-head"><div><h2>Upcoming events</h2><p>Keep your club activity moving.</p></div><button class="text-btn" data-page-link="events">View all →</button></div>
+              <div class="event-list">
+                <article class="event-row"><div class="date-chip"><b>26</b><span>SEP</span></div><div class="event-main"><strong>Design Thinking Workshop</strong><span>Sat · 10:00 AM · Innovation Lab</span><div class="event-meta"><span class="pill">Workshop</span><span>128 registered</span></div></div><span class="status live">Open</span><button class="row-menu">•••</button></article>
+                <article class="event-row"><div class="date-chip"><b>28</b><span>SEP</span></div><div class="event-main"><strong>Founders' Fireside</strong><span>Mon · 4:00 PM · Auditorium</span><div class="event-meta"><span class="pill purple">Talk</span><span>214 registered</span></div></div><span class="status live">Open</span><button class="row-menu">•••</button></article>
+                <article class="event-row"><div class="date-chip"><b>02</b><span>OCT</span></div><div class="event-main"><strong>Campus Hack Night</strong><span>Fri · 6:30 PM · Block B</span><div class="event-meta"><span class="pill green">Hackathon</span><span>76 registered</span></div></div><span class="status full">82% full</span><button class="row-menu">•••</button></article>
+                <article class="event-row"><div class="date-chip"><b>06</b><span>OCT</span></div><div class="event-main"><strong>Open Mic: Utsava</strong><span>Tue · 5:00 PM · Amphitheatre</span><div class="event-meta"><span class="pill pink">Cultural</span><span>91 registered</span></div></div><span class="status live">Open</span><button class="row-menu">•••</button></article>
+              </div>
+            </section>
+
+            <section class="panel activity-panel">
+              <div class="panel-head"><div><h2>Participation pulse</h2><p>Last 7 days</p></div><button class="filter-btn">This week ⌄</button></div>
+              <div class="chart-wrap">
+                <div class="y-axis"><span>160</span><span>120</span><span>80</span><span>40</span><span>0</span></div>
+                <div class="chart"><div class="gridline g1"></div><div class="gridline g2"></div><div class="gridline g3"></div><div class="gridline g4"></div><svg viewBox="0 0 500 210" preserveAspectRatio="none" aria-label="Participation chart"><defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d7a63c" stop-opacity=".34"/><stop offset="1" stop-color="#d7a63c" stop-opacity="0"/></linearGradient></defs><path d="M0 155 C40 145,65 132,95 141 S145 105,175 117 S230 92,260 112 S315 61,350 82 S395 55,425 72 S470 38,500 45 L500 210 L0 210Z" fill="url(#area)"/><path d="M0 155 C40 145,65 132,95 141 S145 105,175 117 S230 92,260 112 S315 61,350 82 S395 55,425 72 S470 38,500 45" fill="none" stroke="#d7a63c" stroke-width="4" stroke-linecap="round"/></svg><div class="x-axis"><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span><span>Mon</span><span>Tue</span></div></div>
+              </div>
+              <div class="chart-foot"><span><i></i> Attendance</span><strong>742 check-ins</strong></div>
+            </section>
+          </div>
+
+          <div class="lower-grid">
+            <section class="panel quick-panel">
+              <div class="panel-head"><div><h2>Quick actions</h2><p>Get things done faster.</p></div></div>
+              <div class="quick-actions">
+                <button class="quick" id="quickEvent"><span>＋</span><strong>Create event</strong><small>Set up a new club event</small></button>
+                <button class="quick" data-page="attendance"><span>⌁</span><strong>Take attendance</strong><small>Open a QR check-in</small></button>
+                <button class="quick" data-page="students"><span>◎</span><strong>Find a student</strong><small>View participation history</small></button>
+                <button class="quick" data-page="reports"><span>▥</span><strong>Generate report</strong><small>Export event records</small></button>
+              </div>
+            </section>
+            <section class="panel recent-panel">
+              <div class="panel-head"><div><h2>Recent activity</h2><p>Latest updates across your club.</p></div><button class="text-btn">View log →</button></div>
+              <div class="activity-list">
+                <div class="activity-item"><div class="activity-avatar gold-bg">✓</div><div><strong>Attendance completed</strong><span>Startup 101 · 84 attendees</span></div><time>12m</time></div>
+                <div class="activity-item"><div class="activity-avatar purple-bg">+</div><div><strong>32 new registrations</strong><span>Design Thinking Workshop</span></div><time>48m</time></div>
+                <div class="activity-item"><div class="activity-avatar green-bg">◇</div><div><strong>18 certificates issued</strong><span>AI & Society panel</span></div><time>2h</time></div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page" id="events"><div class="page-head"><div><p class="eyebrow">EVENTS</p><h1>Event management</h1><p class="subhead">Create, publish and track every club event from one place.</p></div><button class="primary" id="createEventBtn2">＋ Create event</button></div><div class="event-cards"><div class="event-card"><div class="event-banner gold-banner"></div><div class="event-card-body"><span class="pill">Workshop</span><h3>Design Thinking Workshop</h3><p>26 Sep · 10:00 AM · Innovation Lab</p><div><b>128</b> registered <span>·</span> <b>200</b> capacity</div><button class="outline">Manage event →</button></div></div><div class="event-card"><div class="event-banner purple-banner"></div><div class="event-card-body"><span class="pill purple">Talk</span><h3>Founders' Fireside</h3><p>28 Sep · 4:00 PM · Auditorium</p><div><b>214</b> registered <span>·</span> <b>250</b> capacity</div><button class="outline">Manage event →</button></div></div><div class="event-card"><div class="event-banner green-banner"></div><div class="event-card-body"><span class="pill green">Hackathon</span><h3>Campus Hack Night</h3><p>02 Oct · 6:30 PM · Block B</p><div><b>164</b> registered <span>·</span> <b>200</b> capacity</div><button class="outline">Manage event →</button></div></div></div></section>
+
+        <section class="page" id="attendance"><div class="page-head"><div><p class="eyebrow">ATTENDANCE</p><h1>Live check-in</h1><p class="subhead">Scan QR codes and watch attendance update in real time.</p></div><button class="primary" id="startScan">▣ Open scanner</button></div><div class="attendance-grid"><div class="panel qr-panel"><div class="qr-placeholder"><div class="qr-box"><span>▦</span></div><strong>Design Thinking Workshop</strong><span>Scan this QR at the entrance</span><small>Refreshes every 60 seconds</small></div></div><div class="panel attendance-summary"><div class="summary-big"><span>Attendance</span><strong>128 / 147</strong><em>87.1%</em></div><div class="progress"><i style="width:87%"></i></div><div class="summary-row"><span>Registered</span><b>147</b></div><div class="summary-row"><span>Checked in</span><b>128</b></div><div class="summary-row"><span>Not arrived</span><b>19</b></div><button class="outline full-btn">View attendee list →</button></div></div></section>
+
+        <section class="page" id="students"><div class="page-head"><div><p class="eyebrow">STUDENTS</p><h1>Participation records</h1><p class="subhead">One searchable record for every student and every activity.</p></div><div class="search-box">⌕ <input placeholder="Search name, ID or email"></div></div><div class="panel table-panel"><table><thead><tr><th>Student</th><th>Student ID</th><th>Events</th><th>Attendance</th><th>Certificates</th><th></th></tr></thead><tbody><tr><td><div class="student-cell"><span class="avatar small">RS</span><strong>Rohan Shah</strong></div></td><td>STU-24081</td><td>14</td><td><span class="attendance-good">92%</span></td><td>8</td><td>→</td></tr><tr><td><div class="student-cell"><span class="avatar small purple">NK</span><strong>Nisha Kumar</strong></div></td><td>STU-24114</td><td>11</td><td><span class="attendance-good">88%</span></td><td>6</td><td>→</td></tr><tr><td><div class="student-cell"><span class="avatar small green">AD</span><strong>Arjun Das</strong></div></td><td>STU-23987</td><td>19</td><td><span class="attendance-good">96%</span></td><td>12</td><td>→</td></tr><tr><td><div class="student-cell"><span class="avatar small pink">PM</span><strong>Priya Menon</strong></div></td><td>STU-24201</td><td>9</td><td><span class="attendance-mid">78%</span></td><td>5</td><td>→</td></tr></tbody></table></div></section>
+
+        <section class="page" id="certificates"><div class="page-head"><div><p class="eyebrow">CERTIFICATES</p><h1>Certificates</h1><p class="subhead">Turn participation into verifiable achievements.</p></div><button class="primary">＋ Issue certificates</button></div><div class="cert-grid"><div class="panel cert-stat"><span>Issued this semester</span><strong>486</strong><small>↑ 24% from last semester</small></div><div class="panel cert-stat"><span>Pending</span><strong>23</strong><small>Across 4 events</small></div><div class="panel cert-stat"><span>Downloads</span><strong>392</strong><small>80.6% download rate</small></div></div><div class="panel emptyish"><div class="certificate-mark">◇</div><h3>Certificates stay connected to participation</h3><p>Every certificate is linked to the event and student's verified attendance record.</p></div></section>
+
+        <section class="page" id="reports"><div class="page-head"><div><p class="eyebrow">REPORTS</p><h1>Reports & insights</h1><p class="subhead">Export clean records for faculty coordinators and college administration.</p></div><button class="primary">↓ Export report</button></div><div class="report-grid"><div class="panel report-card"><span>Events this semester</span><strong>48</strong><div class="mini-bars"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:70%"></i><i style="height:64%"></i><i style="height:88%"></i><i style="height:76%"></i></div></div><div class="panel report-card"><span>Total participation</span><strong>2,846</strong><p>Unique registrations across all events.</p></div><div class="panel report-card"><span>Average attendance</span><strong>87.4%</strong><p>Based on verified QR check-ins.</p></div></div></section>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal" id="eventModal" aria-hidden="true">
+    <div class="modal-backdrop"></div>
+    <div class="modal-card">
+      <button class="modal-close" id="closeModal">×</button>
+      <p class="eyebrow">NEW EVENT</p><h2>Create an event</h2><p class="modal-copy">Set up the basics now. Registration and QR attendance are created automatically.</p>
+      <label>Event name<input id="eventName" placeholder="e.g. Entrepreneurship 101"></label>
+      <div class="form-row"><label>Date<input type="date"></label><label>Time<input type="time"></label></div>
+      <label>Venue<input placeholder="e.g. Seminar Hall"></label>
+      <div class="form-actions"><button class="outline" id="cancelModal">Cancel</button><button class="primary" id="saveEvent">Create event</button></div>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
 </body>
-
 </html>
