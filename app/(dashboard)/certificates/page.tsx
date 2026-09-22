@@ -1,1 +1,1 @@
-import{ModulePage}from"@/components/module-page";import{MODULES}from"@/lib/module-config";export default function Page(){return <ModulePage config={MODULES.certificates}/>
+import{ModulePage}from"@/components/module-page";import{MODULES}from"@/lib/module-config";export default function Page(){return <ModulePage config={MODULES.certificates}/>}
