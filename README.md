@@ -1,15 +1,27 @@
-# Utsavaloka — Club Management Hub
+# Utsavaloka
 
-Prototype for the college club management challenge.
+Utsavaloka is the **Club Management Hub** and future unified college platform.
 
-## MVP flow
+## Core club workflow
 Event → Registration → QR Attendance → Participation → Certificate → Report
 
-## Branch
-Uloka
+## College platform modules
+### Academic
+Attendance, Marks, Courses, Timetable, Exams
+
+### Communication
+Notices, Notifications, Circulars, Deadlines
+
+### Student Life
+Clubs, Events, Registration, Attendance, Participation, Certificates
+
+### Student Profile
+Academic record, Activity record, Achievements
 
 ## Deployment
-Intended host: Vercel  
-Intended domain: utsavaloka.thestartuptv.com
+- Branch: Uloka
+- Vercel: utsavaloka
+- Domain: https://utsavaloka.thestartuptv.com
 
-This branch is a frontend prototype with mock data and client-side interactions.
+## Prototype note
+The current branch is a frontend product prototype. Event creation is stored in browser local storage; the UI includes the full product surface for the proposed platform. Production authentication, database persistence, QR generation/scanning, role-based permissions, certificate PDF generation and college ERP integrations are the next backend layer.
