@@ -23,6 +23,7 @@ type JuryProgress = {
 type DashboardSearchParams = {
   q?: string;
   status?: string;
+  language?: string;
   jury?: string;
   evaluation?: string;
   from?: string;
@@ -40,6 +41,7 @@ export default async function DashboardPage({
 
   const query = (params.q ?? "").trim().toLowerCase();
   const statusFilter = params.status ?? "all";
+  const languageFilter = params.language ?? "all";
   const juryFilter = params.jury ?? "all";
   const evaluationFilter = params.evaluation ?? "all";
   const fromFilter = params.from ?? "";
@@ -522,6 +524,24 @@ export default async function DashboardPage({
         return false;
       }
     }
+    if (languageFilter !== "all") {
+      const submissionLanguage =
+        typeof submission.language === "string"
+          ? submission.language.trim()
+          : "";
+
+      const filmLanguage =
+        typeof film?.language === "string"
+          ? film.language.trim()
+          : "";
+
+      if (
+        submissionLanguage !== languageFilter &&
+        filmLanguage !== languageFilter
+      ) {
+        return false;
+      }
+    }
 
     if (
       juryAssignmentFilmIds &&
@@ -728,15 +748,16 @@ export default async function DashboardPage({
           )
       );
 
-      const reviewedFilmIds = new Set(
-        filteredEvaluations
+      const completedFilmIds = new Set(
+        filteredAssignments
           .filter(
-            (evaluation) =>
-              evaluation.jury_id === member.id
+            (assignment) =>
+              assignment.jury_id === member.id &&
+              assignment.status === "completed"
           )
           .map(
-            (evaluation) =>
-              evaluation.film_id
+            (assignment) =>
+              assignment.film_id
           )
       );
 
@@ -744,7 +765,7 @@ export default async function DashboardPage({
         assignedFilmIds.size;
 
       const reviewedCount =
-        reviewedFilmIds.size;
+        completedFilmIds.size;
 
       return {
         id: member.id,
@@ -765,6 +786,9 @@ export default async function DashboardPage({
     if (params.q) search.set("q", params.q);
     if (statusFilter !== "all") {
       search.set("status", statusFilter);
+    }
+    if (languageFilter !== "all") {
+      search.set("language", languageFilter);
     }
     if (juryFilter !== "all") search.set("jury", juryFilter);
     if (evaluationFilter !== "all") {
@@ -886,7 +910,52 @@ export default async function DashboardPage({
             </option>
           </select>
         </div>
+        <div className="dashboard-filter-field">
+          <label htmlFor="dashboard-language">
+            LANGUAGE
+          </label>
 
+          <select
+            id="dashboard-language"
+            name="language"
+            defaultValue={languageFilter}
+          >
+            <option value="all">
+              All languages
+            </option>
+
+            {Object.entries(
+              (films ?? []).reduce<Record<string, number>>(
+                (counts, film) => {
+                  const language =
+                    typeof film.language === "string"
+                      ? film.language.trim()
+                      : "";
+
+                  const key = language || "Unknown";
+
+                  counts[key] = (counts[key] ?? 0) + 1;
+
+                  return counts;
+                },
+                {}
+              )
+            )
+              .sort(
+                ([languageA, countA], [languageB, countB]) =>
+                  countB - countA ||
+                  languageA.localeCompare(languageB)
+              )
+              .map(([language, count]) => (
+                <option
+                  key={language}
+                  value={language}
+                >
+                  {language} ({count})
+                </option>
+              ))}
+          </select>
+        </div>
         <div className="dashboard-filter-field">
           <label htmlFor="dashboard-jury">
             JURY
