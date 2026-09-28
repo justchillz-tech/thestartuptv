@@ -20,7 +20,7 @@ type Evaluation = {
   overall_impact: number;
   remarks: string | null;
   submitted_at: string;
-  films: { id: string; film_code: string; title: string; director: string } | null;
+  films: { id: string; film_code: string; title: string; director: string; drive_url: string | null; video_url: string | null; } | null;
   juries: { id: string; name: string; email: string } | null;
 };
 
@@ -54,7 +54,7 @@ export default async function AdminResultsPage() {
   // so nested PostgREST selection of films is ambiguous. Fetch related
   // records separately and join them in memory.
   const [{ data: films, error: filmsError }, { data: evaluations, error: evaluationsError }] = await Promise.all([
-    supabase.from("films").select("id, film_code, title, director, status").order("created_at", { ascending: true }),
+    supabase.from("films").select("id, film_code, title, director, status, video_url, drive_url").order("created_at", { ascending: true }),
     supabase
       .from("evaluations")
       .select("id, jury_id, film_id, total, story_narrative, direction, screenplay, cinematography, acting, editing, originality, sound, production_design, overall_impact, remarks, submitted_at")
@@ -150,6 +150,18 @@ export default async function AdminResultsPage() {
                 </summary>
 
                 <div className={styles.resultDetail}>
+                  {(item.film?.video_url || item.film?.drive_url) && (
+                    <div className={styles.filmAction}>
+                      <a
+                        href={item.film.video_url || item.film.drive_url || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.openFilmButton}
+                      >
+                        Open Film <span>↗</span>
+                      </a>
+                    </div>
+                  )}
                   <div className={styles.scoreSummary}>
                     <div><span>AVERAGE</span><strong>{item.average.toFixed(1)}</strong></div>
                     <div><span>HIGH</span><strong>{item.highest}</strong></div>

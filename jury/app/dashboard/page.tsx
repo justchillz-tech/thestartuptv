@@ -1516,6 +1516,10 @@ export default async function DashboardPage({
               <span>View results</span>
               <strong>↗</strong>
             </Link>
+            <Link href="/admin/referrals">
+              <span>Referral dashboard</span>
+              <strong>↗</strong>
+            </Link>
           </div>
         </div>
       </section>
