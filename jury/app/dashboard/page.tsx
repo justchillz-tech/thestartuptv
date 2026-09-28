@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SignOutButton from "./SignOutButton";
+import { normalizeLanguage } from "@/lib/language";
 
 type RecentSubmission = {
   id: string;
@@ -526,14 +527,10 @@ export default async function DashboardPage({
     }
     if (languageFilter !== "all") {
       const submissionLanguage =
-        typeof submission.language === "string"
-          ? submission.language.trim()
-          : "";
+        normalizeLanguage(submission.language);
 
       const filmLanguage =
-        typeof film?.language === "string"
-          ? film.language.trim()
-          : "";
+        normalizeLanguage(film?.language);
 
       if (
         submissionLanguage !== languageFilter &&
@@ -778,6 +775,28 @@ export default async function DashboardPage({
         ),
       };
     });
+  const languageCounts = filteredFilms.reduce<
+    Record<string, number>
+  >(
+    (counts, film) => {
+      const language = normalizeLanguage(
+        film.language
+      );
+
+      counts[language] =
+        (counts[language] ?? 0) + 1;
+
+      return counts;
+    },
+    {}
+  );
+
+  const languageDistribution =
+    Object.entries(languageCounts).sort(
+      ([languageA, countA], [languageB, countB]) =>
+        countB - countA ||
+        languageA.localeCompare(languageB)
+    );
   const recentSubmissions: RecentSubmission[] = filteredSubmissions.slice(0, 5);
 
   const buildPipelineUrl = (pipeline: string) => {
@@ -927,12 +946,9 @@ export default async function DashboardPage({
             {Object.entries(
               (films ?? []).reduce<Record<string, number>>(
                 (counts, film) => {
-                  const language =
-                    typeof film.language === "string"
-                      ? film.language.trim()
-                      : "";
-
-                  const key = language || "Unknown";
+                  const key = normalizeLanguage(
+                    film.language
+                  );
 
                   counts[key] = (counts[key] ?? 0) + 1;
 
@@ -1184,6 +1200,44 @@ export default async function DashboardPage({
                 })}
               </div>
             )}
+          </div>
+        )}
+      </section>
+      <section className="analytics-section">
+        <div className="analytics-section-head">
+          <div>
+            <span>FILMS</span>
+            <h2>Language distribution</h2>
+          </div>
+
+          <span className="section-meta">
+            {filteredFilms.length} films
+          </span>
+        </div>
+
+        {languageDistribution.length === 0 ? (
+          <div className="analytics-empty">
+            <strong>No language data available.</strong>
+            <span>
+              Language distribution will appear once films are available.
+            </span>
+          </div>
+        ) : (
+          <div className="language-distribution-grid">
+            {languageDistribution.map(([language, count]) => (
+              <Link
+                key={language}
+                href={`/dashboard?language=${encodeURIComponent(language)}`}
+                className={`language-distribution-card ${languageFilter === language ? "active" : ""
+                  }`}
+              >
+                <span>{language}</span>
+                <strong>{count}</strong>
+                <small>
+                  {count === 1 ? "film" : "films"}
+                </small>
+              </Link>
+            ))}
           </div>
         )}
       </section>
@@ -2332,6 +2386,71 @@ export default async function DashboardPage({
           padding: 12px 0;
           color: var(--text-secondary);
           font-size: 10px;
+        }
+        .language-distribution-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .language-distribution-card {
+          display: block;
+          min-height: 125px;
+          padding: 22px;
+          border: 1px solid var(--glass-border);
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.025);
+          color: inherit;
+          text-decoration: none;
+          transition:
+            transform 0.2s ease,
+            border-color 0.2s ease,
+            background 0.2s ease;
+        }
+
+        .language-distribution-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.045);
+        }
+
+        .language-distribution-card.active {
+          border-color: rgba(243, 150, 31, 0.45);
+          background: rgba(243, 150, 31, 0.075);
+        }
+
+        .language-distribution-card > span {
+          display: block;
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+
+        .language-distribution-card > strong {
+          display: block;
+          margin: 15px 0 4px;
+          font-size: 38px;
+          line-height: 1;
+          letter-spacing: -0.04em;
+        }
+
+        .language-distribution-card > small {
+          color: rgba(255, 255, 255, 0.38);
+          font-size: 9px;
+        }
+
+        @media (max-width: 900px) {
+          .language-distribution-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+        }
+
+        @media (max-width: 650px) {
+          .language-distribution-grid {
+            grid-template-columns: 1fr;
+          }
         }
 
         @media (max-width: 1100px) {
