@@ -13,7 +13,8 @@
     "@supabase/supabase-js": "^2.58.0",
     "next": "^16.0.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "resend": "^6.32.1"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
@@ -21,9 +22,10 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
+    "supabase": "^2.120.0",
     "typescript": "^5.7.0"
   },
-   "browserslist": [
+  "browserslist": [
     "chrome 111",
     "edge 111",
     "firefox 111",
