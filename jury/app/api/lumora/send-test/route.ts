@@ -26,10 +26,63 @@ function validateUrl(value: string, fieldName: string): string {
     }
 }
 
+type EmbeddedImage = {
+    mimeType: string;
+    base64: string;
+    contentId: string;
+    filename: string;
+};
+
+function extractEmbeddedImages(html: string) {
+    let imageNumber = 0;
+
+    const images: EmbeddedImage[] = [];
+
+    const processedHtml = html.replace(
+        /data:image\/([^;]+);base64,([^"')]+)/g,
+        (_match, extension: string, base64: string) => {
+            imageNumber++;
+
+            const mimeType = `image/${extension}`;
+
+            let contentId: string;
+            let filename: string;
+
+            if (imageNumber === 1) {
+                contentId = "lumora-header";
+                filename = "lumora-header.jpg";
+            } else if (imageNumber === 2) {
+                contentId = "lumora-hero";
+                filename = "lumora-hero.jpg";
+            } else if (imageNumber === 3) {
+                contentId = "startup-tv-logo";
+                filename = "startup-tv-logo.png";
+            } else {
+                contentId = `lumora-image-${imageNumber}`;
+                filename = `lumora-image-${imageNumber}.${extension}`;
+            }
+
+            images.push({
+                mimeType,
+                base64,
+                contentId,
+                filename,
+            });
+
+            return `cid:${contentId}`;
+        }
+    );
+
+    return {
+        html: processedHtml,
+        images,
+    };
+}
+
 export async function POST(request: Request) {
     try {
         // ---------------------------------------------------------
-        // 1. Check environment
+        // 1. Environment
         // ---------------------------------------------------------
 
         const resendApiKey = process.env.RESEND_API_KEY;
@@ -66,7 +119,7 @@ export async function POST(request: Request) {
         }
 
         // ---------------------------------------------------------
-        // 2. Protect the test endpoint
+        // 2. Protect test endpoint
         // ---------------------------------------------------------
 
         const authorization = request.headers.get("authorization");
@@ -79,7 +132,7 @@ export async function POST(request: Request) {
         }
 
         // ---------------------------------------------------------
-        // 3. Read request body
+        // 3. Request body
         // ---------------------------------------------------------
 
         const body = await request.json();
@@ -113,7 +166,7 @@ export async function POST(request: Request) {
         }
 
         // ---------------------------------------------------------
-        // 4. Validate dynamic URLs
+        // 4. Validate URLs
         // ---------------------------------------------------------
 
         const safeGoogleMapsLink = validateUrl(
@@ -127,7 +180,7 @@ export async function POST(request: Request) {
         );
 
         // ---------------------------------------------------------
-        // 5. Load the rebuilt LUMORA email template
+        // 5. Load template
         // ---------------------------------------------------------
 
         const templatePath = path.join(
@@ -139,7 +192,7 @@ export async function POST(request: Request) {
         let html = await readFile(templatePath, "utf8");
 
         // ---------------------------------------------------------
-        // 6. Replace template placeholders
+        // 6. Replace finalist placeholders
         // ---------------------------------------------------------
 
         html = html
@@ -149,7 +202,25 @@ export async function POST(request: Request) {
             .replaceAll("{CONFIRMATION_LINK}", safeConfirmationLink);
 
         // ---------------------------------------------------------
-        // 7. Send email
+        // 7. Convert base64 images to CID references
+        // ---------------------------------------------------------
+
+        const extracted = extractEmbeddedImages(html);
+
+        html = extracted.html;
+
+        // ---------------------------------------------------------
+        // 8. Prepare inline attachments
+        // ---------------------------------------------------------
+
+        const attachments = extracted.images.map((image) => ({
+            filename: image.filename,
+            content: Buffer.from(image.base64, "base64"),
+            contentId: image.contentId,
+        }));
+
+        // ---------------------------------------------------------
+        // 9. Send
         // ---------------------------------------------------------
 
         const resend = new Resend(resendApiKey);
@@ -159,6 +230,7 @@ export async function POST(request: Request) {
             to: [testEmail],
             subject: `LUMORA 2026 — Top 10 Finalist Invitation | ${filmTitle}`,
             html,
+            attachments,
         });
 
         if (error) {
@@ -173,15 +245,12 @@ export async function POST(request: Request) {
             );
         }
 
-        // ---------------------------------------------------------
-        // 8. Success
-        // ---------------------------------------------------------
-
         return NextResponse.json({
             success: true,
             message: "LUMORA test email sent successfully.",
             emailId: data?.id ?? null,
             recipient: testEmail,
+            inlineImages: attachments.length,
         });
     } catch (error) {
         console.error("LUMORA send-test error:", error);
