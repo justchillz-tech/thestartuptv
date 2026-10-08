@@ -9,7 +9,7 @@ type Attendance = {
     status: "pending" | "confirmed" | "declined";
     guest_count: number;
     confirmed_at: string | null;
-    films:
+    film:
     | {
         title: string;
         director: string;
@@ -169,7 +169,7 @@ function LumoraConfirmationContent() {
     }
 
     const filmTitle =
-        attendance.films?.title || "Your selected film";
+        attendance.film?.title || "Your selected film";
 
     if (result === "confirmed") {
         return (

@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Resend } from "resend";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function escapeHtml(value: string): string {
     return value
@@ -16,14 +18,26 @@ function validateUrl(value: string, fieldName: string): string {
     try {
         const url = new URL(value);
 
-        if (url.protocol !== "https:" && url.protocol !== "http:") {
+        if (
+            url.protocol !== "https:" &&
+            url.protocol !== "http:"
+        ) {
             throw new Error();
         }
 
-        return escapeHtml(url.toString());
+        return url.toString();
     } catch {
-        throw new Error(`${fieldName} must be a valid HTTP/HTTPS URL.`);
+        throw new Error(
+            `${fieldName} must be a valid HTTP/HTTPS URL.`
+        );
     }
+}
+
+function hashToken(token: string): string {
+    return crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
 }
 
 type EmbeddedImage = {
@@ -89,31 +103,58 @@ export async function POST(request: Request) {
         const fromEmail = process.env.LUMORA_FROM_EMAIL;
         const testEmail = process.env.LUMORA_TEST_EMAIL;
         const testSecret = process.env.LUMORA_TEST_SECRET;
+        const appUrl = process.env.APP_URL;
+
+        const mapsLink =
+            process.env.LUMORA_MAPS_LINK ||
+            "https://maps.app.goo.gl/4AEePEoyJ8NZ1JGc9";
 
         if (!resendApiKey) {
             return NextResponse.json(
-                { error: "RESEND_API_KEY is not configured." },
+                {
+                    error:
+                        "RESEND_API_KEY is not configured.",
+                },
                 { status: 500 }
             );
         }
 
         if (!fromEmail) {
             return NextResponse.json(
-                { error: "LUMORA_FROM_EMAIL is not configured." },
+                {
+                    error:
+                        "LUMORA_FROM_EMAIL is not configured.",
+                },
                 { status: 500 }
             );
         }
 
         if (!testEmail) {
             return NextResponse.json(
-                { error: "LUMORA_TEST_EMAIL is not configured." },
+                {
+                    error:
+                        "LUMORA_TEST_EMAIL is not configured.",
+                },
                 { status: 500 }
             );
         }
 
         if (!testSecret) {
             return NextResponse.json(
-                { error: "LUMORA_TEST_SECRET is not configured." },
+                {
+                    error:
+                        "LUMORA_TEST_SECRET is not configured.",
+                },
+                { status: 500 }
+            );
+        }
+
+        if (!appUrl) {
+            return NextResponse.json(
+                {
+                    error:
+                        "APP_URL is not configured.",
+                },
                 { status: 500 }
             );
         }
@@ -122,65 +163,236 @@ export async function POST(request: Request) {
         // 2. Protect test endpoint
         // ---------------------------------------------------------
 
-        const authorization = request.headers.get("authorization");
+        const authorization =
+            request.headers.get("authorization");
 
-        if (authorization !== `Bearer ${testSecret}`) {
+        if (
+            authorization !==
+            `Bearer ${testSecret}`
+        ) {
             return NextResponse.json(
-                { error: "Unauthorized." },
+                {
+                    error: "Unauthorized.",
+                },
                 { status: 401 }
             );
         }
 
         // ---------------------------------------------------------
-        // 3. Request body
+        // 3. Supabase
         // ---------------------------------------------------------
 
-        const body = await request.json();
+        const supabase = createAdminClient();
 
-        const name =
-            typeof body.name === "string" ? body.name.trim() : "";
+        // ---------------------------------------------------------
+        // 4. Find the current #1 finalist
+        // ---------------------------------------------------------
 
-        const filmTitle =
-            typeof body.filmTitle === "string"
-                ? body.filmTitle.trim()
-                : "";
+        const { data: evaluation, error: evaluationError } =
+            await supabase
+                .from("evaluations")
+                .select(`
+                    film_id,
+                    total,
+                    films!evaluations_film_id_fkey (
+                        id,
+                        film_code,
+                        title,
+                        director
+                    )
+                `)
+                .order("total", {
+                    ascending: false,
+                })
+                .limit(1)
+                .maybeSingle();
 
-        const googleMapsLink =
-            typeof body.googleMapsLink === "string"
-                ? body.googleMapsLink.trim()
-                : "";
+        if (evaluationError) {
+            console.error(
+                "LUMORA finalist lookup error:",
+                evaluationError
+            );
 
-        const confirmationLink =
-            typeof body.confirmationLink === "string"
-                ? body.confirmationLink.trim()
-                : "";
-
-        if (!name || !filmTitle || !googleMapsLink || !confirmationLink) {
             return NextResponse.json(
                 {
                     error:
-                        "name, filmTitle, googleMapsLink and confirmationLink are required.",
+                        "Unable to load finalist from evaluations.",
                 },
-                { status: 400 }
+                { status: 500 }
+            );
+        }
+
+        if (!evaluation?.film_id || !evaluation.films) {
+            return NextResponse.json(
+                {
+                    error:
+                        "No finalist was found.",
+                },
+                { status: 404 }
+            );
+        }
+
+        const film = Array.isArray(evaluation.films)
+            ? evaluation.films[0]
+            : evaluation.films;
+
+        if (!film) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Finalist film data is invalid.",
+                },
+                { status: 500 }
             );
         }
 
         // ---------------------------------------------------------
-        // 4. Validate URLs
+        // 5. Find participant connected to the finalist
         // ---------------------------------------------------------
 
-        const safeGoogleMapsLink = validateUrl(
-            googleMapsLink,
-            "googleMapsLink"
-        );
+        const {
+            data: submission,
+            error: submissionError,
+        } = await supabase
+            .from("film_submissions")
+            .select(`
+                id,
+                participant_name,
+                participant_email,
+                title
+            `)
+            .eq("approved_film_id", film.id)
+            .maybeSingle();
 
-        const safeConfirmationLink = validateUrl(
-            confirmationLink,
-            "confirmationLink"
-        );
+        if (submissionError) {
+            console.error(
+                "LUMORA participant lookup error:",
+                submissionError
+            );
+
+            return NextResponse.json(
+                {
+                    error:
+                        "Unable to load finalist participant.",
+                },
+                { status: 500 }
+            );
+        }
+
+        if (
+            !submission?.participant_name ||
+            !submission?.participant_email
+        ) {
+            return NextResponse.json(
+                {
+                    error:
+                        "Finalist does not have a participant name/email.",
+                    film: film.title,
+                },
+                { status: 422 }
+            );
+        }
 
         // ---------------------------------------------------------
-        // 5. Load template
+        // 6. Generate secure confirmation token
+        // ---------------------------------------------------------
+
+        const rawToken =
+            crypto.randomBytes(32).toString("hex");
+
+        const tokenHash = hashToken(rawToken);
+
+        // ---------------------------------------------------------
+        // 7. Clean up previous TEST attendance record
+        // ---------------------------------------------------------
+        //
+        // This is intentionally allowed here because this route
+        // is TEST MODE only.
+        //
+        // The production sender will NOT do this.
+        //
+
+        const {
+            error: deleteError,
+        } = await supabase
+            .from("lumora_attendance")
+            .delete()
+            .eq("film_id", film.id);
+
+        if (deleteError) {
+            console.error(
+                "LUMORA test attendance cleanup error:",
+                deleteError
+            );
+
+            return NextResponse.json(
+                {
+                    error:
+                        "Unable to reset previous test attendance.",
+                },
+                { status: 500 }
+            );
+        }
+
+        // ---------------------------------------------------------
+        // 8. Create attendance record
+        // ---------------------------------------------------------
+
+        const {
+            data: attendance,
+            error: attendanceError,
+        } = await supabase
+            .from("lumora_attendance")
+            .insert({
+                film_id: film.id,
+                submission_id: submission.id,
+                token_hash: tokenHash,
+                status: "pending",
+                guest_count: 0,
+            })
+            .select("id")
+            .single();
+
+        if (attendanceError) {
+            console.error(
+                "LUMORA attendance creation error:",
+                attendanceError
+            );
+
+            return NextResponse.json(
+                {
+                    error:
+                        "Unable to create confirmation record.",
+                },
+                { status: 500 }
+            );
+        }
+
+        // ---------------------------------------------------------
+        // 9. Build confirmation URL
+        // ---------------------------------------------------------
+
+        const safeAppUrl = appUrl.replace(/\/+$/, "");
+
+        const confirmationUrl =
+            `${safeAppUrl}/lumora/confirm?token=${encodeURIComponent(
+                rawToken
+            )}`;
+
+        const safeConfirmationLink =
+            validateUrl(
+                confirmationUrl,
+                "confirmation URL"
+            );
+
+        const safeGoogleMapsLink =
+            validateUrl(
+                mapsLink,
+                "Google Maps link"
+            );
+
+        // ---------------------------------------------------------
+        // 10. Load LUMORA email template
         // ---------------------------------------------------------
 
         const templatePath = path.join(
@@ -189,75 +401,155 @@ export async function POST(request: Request) {
             "lumora-top10.html"
         );
 
-        let html = await readFile(templatePath, "utf8");
+        let html = await readFile(
+            templatePath,
+            "utf8"
+        );
 
         // ---------------------------------------------------------
-        // 6. Replace finalist placeholders
+        // 11. Replace placeholders
         // ---------------------------------------------------------
 
         html = html
-            .replaceAll("{NAME}", escapeHtml(name))
-            .replaceAll("{FILM_TITLE}", escapeHtml(filmTitle))
-            .replaceAll("{GOOGLE_MAPS_LINK}", safeGoogleMapsLink)
-            .replaceAll("{CONFIRMATION_LINK}", safeConfirmationLink);
+            .replaceAll(
+                "{NAME}",
+                escapeHtml(
+                    submission.participant_name
+                )
+            )
+            .replaceAll(
+                "{FILM_TITLE}",
+                escapeHtml(
+                    submission.title ||
+                    film.title
+                )
+            )
+            .replaceAll(
+                "{GOOGLE_MAPS_LINK}",
+                safeGoogleMapsLink
+            )
+            .replaceAll(
+                "{CONFIRMATION_LINK}",
+                safeConfirmationLink
+            );
 
         // ---------------------------------------------------------
-        // 7. Convert base64 images to CID references
+        // 12. Convert base64 images to CID references
         // ---------------------------------------------------------
 
-        const extracted = extractEmbeddedImages(html);
+        const extracted =
+            extractEmbeddedImages(html);
 
         html = extracted.html;
 
         // ---------------------------------------------------------
-        // 8. Prepare inline attachments
+        // 13. Prepare inline attachments
         // ---------------------------------------------------------
 
-        const attachments = extracted.images.map((image) => ({
-            filename: image.filename,
-            content: Buffer.from(image.base64, "base64"),
-            contentId: image.contentId,
-        }));
+        const attachments =
+            extracted.images.map(
+                (image) => ({
+                    filename: image.filename,
+                    content: Buffer.from(
+                        image.base64,
+                        "base64"
+                    ),
+                    contentId:
+                        image.contentId,
+                })
+            );
 
         // ---------------------------------------------------------
-        // 9. Send
+        // 14. Send TEST email
         // ---------------------------------------------------------
 
-        const resend = new Resend(resendApiKey);
+        const resend =
+            new Resend(resendApiKey);
 
-        const { data, error } = await resend.emails.send({
+        const {
+            data,
+            error,
+        } = await resend.emails.send({
             from: fromEmail,
             to: [testEmail],
-            subject: `LUMORA 2026 — Top 10 Finalist Invitation | ${filmTitle}`,
+            subject:
+                `LUMORA 2026 — Top 10 Finalist Invitation | ${film.title}`,
             html,
             attachments,
         });
 
         if (error) {
-            console.error("Resend error:", error);
+            console.error(
+                "Resend error:",
+                error
+            );
 
             return NextResponse.json(
                 {
-                    error: "Failed to send email.",
+                    error:
+                        "Failed to send email.",
                     details: error.message,
                 },
                 { status: 502 }
             );
         }
 
+        // ---------------------------------------------------------
+        // 15. Return TEST result
+        // ---------------------------------------------------------
+
         return NextResponse.json({
             success: true,
-            message: "LUMORA test email sent successfully.",
-            emailId: data?.id ?? null,
-            recipient: testEmail,
-            inlineImages: attachments.length,
+
+            mode: "TEST",
+
+            message:
+                "LUMORA Top 10 test invitation sent successfully.",
+
+            emailId:
+                data?.id ?? null,
+
+            sentTo: testEmail,
+
+            finalist: {
+                filmId: film.id,
+                filmCode: film.film_code,
+                filmTitle: film.title,
+                director: film.director,
+                score: evaluation.total,
+            },
+
+            participant: {
+                name:
+                    submission.participant_name,
+                email:
+                    submission.participant_email,
+                submissionId:
+                    submission.id,
+            },
+
+            attendance: {
+                id: attendance.id,
+                status: "pending",
+            },
+
+            confirmationUrl,
+
+            inlineImages:
+                attachments.length,
         });
     } catch (error) {
-        console.error("LUMORA send-test error:", error);
+        console.error(
+            "LUMORA send-test error:",
+            error
+        );
 
         return NextResponse.json(
             {
-                error: "Internal server error.",
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Internal server error.",
             },
             { status: 500 }
         );

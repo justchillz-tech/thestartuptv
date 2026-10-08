@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import styles from "./results.module.css";
+import LumoraInviteButton from "./LumoraInviteButton";
 
 type Evaluation = {
   id: string;
@@ -102,6 +103,24 @@ export default async function AdminResultsPage() {
     })
     .sort((a, b) => b.average - a.average);
 
+  const topTenFilmIds = rankedFilms
+    .slice(0, 10)
+    .map((item) => item.filmId);
+
+  const { data: lumoraAttendance } = topTenFilmIds.length
+    ? await supabase
+      .from("lumora_attendance")
+      .select("film_id, status")
+      .in("film_id", topTenFilmIds)
+    : { data: [] };
+
+  const lumoraStatusMap = new Map(
+    (lumoraAttendance ?? []).map((item) => [
+      item.film_id,
+      item.status,
+    ])
+  );
+
   const averageScore = rows.length ? rows.reduce((sum, evaluation) => sum + evaluation.total, 0) / rows.length : 0;
   const completedFilms = rankedFilms.length;
   const pendingFilms = Math.max((films?.length ?? 0) - completedFilms, 0);
@@ -150,6 +169,30 @@ export default async function AdminResultsPage() {
                 </summary>
 
                 <div className={styles.resultDetail}>
+                  {index < 10 && (
+                    <div className={styles.lumoraInviteRow}>
+                      <div>
+                        <span className={styles.lumoraInviteKicker}>
+                          LUMORA 2026
+                        </span>
+
+                        <strong>
+                          Top 10 finalist invitation
+                        </strong>
+
+                        <small>
+                          {item.film?.title ?? "Untitled film"}
+                        </small>
+                      </div>
+
+                      <LumoraInviteButton
+                        filmId={item.filmId}
+                        initialStatus={
+                          lumoraStatusMap.get(item.filmId) ?? null
+                        }
+                      />
+                    </div>
+                  )}
                   {(item.film?.video_url || item.film?.drive_url) && (
                     <div className={styles.filmAction}>
                       <a

@@ -409,3 +409,51 @@
     border-color: rgba(255, 255, 255, .22);
     transform: translateY(-1px);
 }
+
+.lumoraInviteRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+
+    margin-bottom: 24px;
+    padding: 18px 20px;
+
+    border: 1px solid rgba(243, 150, 31, 0.16);
+    border-radius: 14px;
+
+    background:
+        linear-gradient(135deg,
+            rgba(243, 150, 31, 0.055),
+            rgba(203, 29, 127, 0.045));
+}
+
+.lumoraInviteRow>div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.lumoraInviteKicker {
+    color: #f3961f;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+}
+
+.lumoraInviteRow strong {
+    color: #fff;
+    font-size: 13px;
+}
+
+.lumoraInviteRow small {
+    color: #777783;
+    font-size: 11px;
+}
+
+@media (max-width: 650px) {
+    .lumoraInviteRow {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
