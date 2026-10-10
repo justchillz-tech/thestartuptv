@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/", "destination": "/index" },
+    { "source": "/contact", "destination": "/contact" },
+    { "source": "/r/:code", "destination": "/index" },
+    { "source": "/r/:code", "destination": "/index" }
+  ]
+}
